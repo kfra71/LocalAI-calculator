@@ -221,29 +221,29 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     ? Math.max(1, unitsKv, unitsDecode, unitsPrefill, unitsServing, unitsSeqs)
     : Infinity;
   const conservativeKvTokens = freeGb > 0 ? (freeGb * 1e6) / kvRange.high : 0;
+  const unitsKvConservative = fits ? ceil(safeDiv(wl.kvRequired, conservativeKvTokens)) : Infinity;
   const conservativeServingLoad =
     safeDiv(wl.decodePeak, aggregateRange.low) + safeDiv(wl.prefillPeak, prefillRange.low);
+  const unitsServingConservative = fits ? ceil(conservativeServingLoad / targetUtilization) : Infinity;
   const conservativeMinimumUnits = fits
-    ? Math.max(
-        1,
-        ceil(safeDiv(wl.kvRequired, conservativeKvTokens)),
-        ceil(conservativeServingLoad / targetUtilization),
-        unitsSeqs
-      )
+    ? Math.max(1, unitsKvConservative, unitsServingConservative, unitsSeqs)
     : Infinity;
   const reserveUnits = fits ? Math.max(0, Math.ceil(st.resilience?.maintenanceReserve ?? 0)) : 0;
   const recommendedUnits = fits
     ? conservativeMinimumUnits + reserveUnits + (st.resilience?.nPlusOne ? 1 : 0)
     : Infinity;
 
-  let binding = "none", bindings = [];
-  if (fits) {
-    const values = {
-      kv: unitsKv, serving: unitsServing, concurrency: unitsSeqs,
-    };
-    bindings = Object.entries(values).filter(([, v]) => v === minimumUnits).map(([k]) => k);
-    binding = bindings.join("+");
-  }
+  const bindingFrom = (target, values) => {
+    if (!fits) return { binding: "none", bindings: [] };
+    const bindings = Object.entries(values).filter(([, v]) => v === target).map(([k]) => k);
+    return { binding: bindings.join("+"), bindings };
+  };
+  const baseBinding = bindingFrom(minimumUnits, {
+    kv: unitsKv, serving: unitsServing, concurrency: unitsSeqs,
+  });
+  const recommendationBinding = bindingFrom(conservativeMinimumUnits, {
+    kv: unitsKvConservative, serving: unitsServingConservative, concurrency: unitsSeqs,
+  });
 
   return {
     precision: derived.precision, weightsGb, overhead, freeGb, kvTokens, kvKbPerToken,
@@ -252,8 +252,12 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     bands: { decode: aggregateRange, prefill: prefillRange, kvKbPerToken: kvRange },
     maxSeqs, targetUtilization, servingLoad,
     fits, unitsKv, unitsDecode, unitsPrefill, unitsServing, unitsSeqs,
+    unitsKvConservative, unitsServingConservative,
     minimumUnits, conservativeMinimumUnits, recommendedUnits, units: recommendedUnits,
-    binding, bindings, warnings,
+    binding: baseBinding.binding, bindings: baseBinding.bindings,
+    recommendationBinding: recommendationBinding.binding,
+    recommendationBindings: recommendationBinding.bindings,
+    warnings,
   };
 }
 
@@ -546,15 +550,28 @@ const CONFIDENCE_RANK = {
   aggregator: 1, community: 2, "list-price": 2, published: 3, measured: 4,
 };
 
+function regionTokens(value) {
+  return String(value || "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 1);
+}
+
+function regionsOverlap(a, b) {
+  const left = new Set(regionTokens(a));
+  if (!left.size) return false;
+  return regionTokens(b).some((token) => left.has(token));
+}
+
 function optionEligibility(hw, st, sizing, cost) {
   const reasons = [];
   const req = st.requirements || {};
   if (req.sovereignOnly && hw.kind !== "own" && hw.sovereign !== true) {
     reasons.push("Not eligible under the sovereign-only requirement.");
   }
-  if (req.regions?.length && hw.kind === "rent" && hw.region &&
-      !req.regions.some((region) => hw.region.includes(region))) {
-    reasons.push("Provider region is outside the allowed regions.");
+  if (req.regions?.length && hw.kind === "rent" && hw.region) {
+    const regionMatches = req.regions.some((region) => regionsOverlap(region, hw.region));
+    if (!regionMatches) reasons.push("Provider region is outside the allowed regions.");
   }
   if (req.requireEquivalentCapability && hw.equivalentCapability === false) {
     reasons.push("Equivalent model capability has not been established.");
@@ -663,6 +680,9 @@ export function computeSensitivity(st, profiles = []) {
     local.costs ||= { modelLifeYears: local.econ.years };
     local.sensitivityMode = mode;
     local.workload.burstiness *= factor(u.peakPct);
+    if ((local.workload.peakManual || 0) > 0) {
+      local.workload.peakManual *= factor(u.peakPct);
+    }
     for (const key of ["platformQuota", "applianceQuota", "nodeQuota", "perUnitQuota"]) {
       local.mgmt[key] *= factor(u.managementPct);
     }

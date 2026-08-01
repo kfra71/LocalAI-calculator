@@ -203,9 +203,13 @@ console.log("\n— precision, validation, and production recommendation —");
 
   const resilient = baseState();
   resilient.resilience.nPlusOne = true;
-  const rtx = resilient.hardware.find((h) => h.id === "rtxpro-4x");
-  const sr = sizeOption(rtx, resilient, workload(resilient));
-  check("N+1 adds one recommended unit", sr.recommendedUnits, sr.minimumUnits + 1);
+  const rtx = resilient.hardware.find((h) => h.id === "rtxpro-2x");
+  resilient.model = { ...models.models.find((m) => (m.supportedPrecisions || []).includes("fp8")) || models.models[0] };
+  const sr = sizeOption(rtx, resilient, workload(resilient), profiles);
+  check("N+1 adds one unit above the conservative minimum",
+    sr.recommendedUnits, sr.conservativeMinimumUnits + 1);
+  truthy("N+1 recommendation can exceed the base minimum by more than one",
+    sr.recommendedUnits > sr.minimumUnits + 1 || sr.conservativeMinimumUnits === sr.minimumUnits);
 }
 
 console.log("\n— eligibility and manual under-provisioning —");
@@ -249,6 +253,43 @@ console.log("\n— cost semantics —");
   check("legacy wear multiplier no longer changes support",
     compute(wear, profiles).options.find((o) => o.hw.id === "rtxpro-4x").cost.support4,
     r.options.find((o) => o.hw.id === "rtxpro-4x").cost.support4);
+}
+
+console.log("\n— region match, peakManual sensitivity, recommendation binding —");
+{
+  const st = baseState();
+  st.requirements.regions = ["EU (France)"];
+  st.requirements.sovereignOnly = false;
+  const r = compute(st, profiles);
+  const scaleway = r.options.find((o) => o.hw.id === "scaleway-b300-8x");
+  truthy("Scaleway France/Netherlands matches EU (France) region filter",
+    !scaleway.eligibility.reasons.includes("Provider region is outside the allowed regions."));
+  const usOnly = baseState();
+  usOnly.requirements.regions = ["US"];
+  usOnly.requirements.sovereignOnly = false;
+  const usScaleway = compute(usOnly, profiles).options.find((o) => o.hw.id === "scaleway-b300-8x");
+  truthy("Scaleway does not match a US-only region filter",
+    usScaleway.eligibility.reasons.includes("Provider region is outside the allowed regions."));
+
+  const peak = baseState();
+  peak.workload.peakManual = 5;
+  peak.uncertainty.peakPct = 0.25;
+  const band = computeSensitivity(peak, profiles);
+  truthy("peakManual uncertainty spreads decode peak",
+    band.conservative.workload.decodePeak >
+    band.optimistic.workload.decodePeak);
+
+  const spark = baseState().hardware.find((h) => h.id === "spark-2x");
+  const sizing = sizeOption(spark, baseState(), workload(baseState()), profiles);
+  truthy("recommendation binding is reported when conservative exceeds base",
+    sizing.recommendationBinding &&
+    (sizing.recommendedUnits > sizing.minimumUnits
+      ? sizing.conservativeMinimumUnits >= sizing.minimumUnits
+      : true));
+
+  const badActive = baseState();
+  badActive.model.activeB = badActive.model.totalB + 1;
+  truthy("activeB above totalB is invalid", !validateState(badActive).valid);
 }
 
 console.log("\n— sensitivity and monotonic invariants —");

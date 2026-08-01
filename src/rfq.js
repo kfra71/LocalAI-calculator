@@ -29,7 +29,7 @@ export function buildRfqSummary(st, r, option = null) {
           `Eligible: ${target.eligibility?.eligible ? "yes" : "no"}`,
           `Eligibility notes: ${target.eligibility?.reasons?.join(" ") || "none"}`,
           `Units: technical minimum ${nf(target.sizing?.minimumUnits)}, recommended ${nf(target.sizing?.recommendedUnits)}, quoted ${nf(target.cost.qty)}`,
-          `Binding constraint: ${target.sizing?.binding ?? "—"}`,
+          `Base binding: ${target.sizing?.binding ?? "—"} · Conservative: ${target.sizing?.recommendationBinding || target.sizing?.binding || "—"}`,
           `Precision / profile: ${target.sizing?.precision || "—"} / ${target.sizing?.profileId || "estimated fallback"}`,
           `Profile confidence: ${target.sizing?.profileConfidence || target.hw.confidence || "unknown"}`,
           `${st.econ.years}-year total (model): ${target.sizing?.fits ? eur(target.cost.total) : "—"}`,

@@ -17,8 +17,7 @@
     "applianceQuota": 0.035,
     "nodeQuota": 0.12,
     "perUnitQuota": 0.010,
-    "automation": 0.40,
-    "wearMultiplier": 1.60
+    "automation": 0.40
   },
 
   "econ": {

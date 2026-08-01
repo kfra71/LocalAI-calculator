@@ -110,7 +110,6 @@ data/hardware.json    hardware and rental catalogue
 data/profiles.json    exact model×hardware×runtime observations
 data/defaults.json    starting values, subscription references, sector table
 data/benchmarks.json  historical record of measured runs
-data/profiles.json    exact model + hardware + runtime serving profiles
 data/schema/          catalogue and saved-scenario schemas
 tests/                engine checks
 ```

@@ -132,6 +132,7 @@ export function buildExportPayload(state, results) {
             precision: o.sizing.precision ?? null,
             warnings: o.sizing.warnings ?? [],
             binding: o.sizing.binding,
+            recommendationBinding: o.sizing.recommendationBinding,
             minimumUnits: o.sizing.minimumUnits,
             conservativeMinimumUnits: o.sizing.conservativeMinimumUnits,
             recommendedUnits: o.sizing.recommendedUnits,
@@ -196,7 +197,8 @@ export function buildMarkdown(state, r) {
     push(
       `Cheapest owned configuration: **${r.bestOwn.hw.label}** at **${eur(r.bestOwn.cost.total)}**` +
         ` (${r.bestOwn.cost.qty} unit${r.bestOwn.cost.qty === 1 ? "" : "s"}, technical minimum ` +
-        `${r.bestOwn.sizing.minimumUnits}, binding constraint: ${r.bestOwn.sizing.binding}).`,
+        `${r.bestOwn.sizing.minimumUnits} · ${r.bestOwn.sizing.binding}, conservative recommendation ` +
+        `${r.bestOwn.sizing.recommendedUnits} · ${r.bestOwn.sizing.recommendationBinding || r.bestOwn.sizing.binding}).`,
       `Cheapest eligible alternative: **${r.bestAlt.hw.label}** at **${eur(r.bestAlt.cost.total)}**.`,
       `Difference: **${eur(r.delta)}** over ${st.econ.years} years, ` +
         `${eur(r.perHeadOwn)} vs ${eur(r.perHeadAlt)} per head per year.`,
@@ -204,10 +206,10 @@ export function buildMarkdown(state, r) {
     );
     if (r.premiumActual !== null) {
       push(
-        `Ownership premium: **${pct(r.premiumActual)}** against an accepted market premium of ${pct(r.premiumAccepted)}.` +
+        `Ownership premium: **${pct(r.premiumActual)}** against the configured acceptable premium of ${pct(r.premiumAccepted)}.` +
           (r.premiumActual > r.premiumAccepted
-            ? " Above the threshold — this needs an explicit compliance driver, not a cost argument."
-            : " Within the range enterprises already accept for control and predictability."),
+            ? " Above the threshold — this needs an explicit non-economic driver."
+            : " Within the scenario-specific threshold configured for this organisation."),
         ""
       );
     }
@@ -300,7 +302,7 @@ export function buildMarkdown(state, r) {
   /* --- comparison --------------------------------------------------- */
   push("## Options compared", "");
   push(
-    "| Option | Base min / conservative recommendation | Eligible | CapEx | Energy | Management | Support | Service / API | Total | Blended €/1M | Input €/1M | Output €/1M | Binding |",
+    "| Option | Base min / conservative recommendation | Eligible | CapEx | Energy | Management | Support | Service / API | Total | Blended €/1M | Input €/1M | Output €/1M | Base / conservative binding |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|---|"
   );
   for (const o of r.options) {
@@ -313,7 +315,7 @@ export function buildMarkdown(state, r) {
         `${eur(o.cost.mgmt4)} | ${eur(o.cost.support4)} | ${eur(o.cost.service4)} | ` +
         `**${eur(o.cost.total)}** | ${(o.perMToken || 0).toFixed(3)} | ` +
         `${o.perMInput != null ? o.perMInput.toFixed(3) : "—"} | ` +
-        `${o.perMOutput != null ? o.perMOutput.toFixed(3) : "—"} | ${o.sizing.binding} |`
+        `${o.perMOutput != null ? o.perMOutput.toFixed(3) : "—"} | ${o.sizing.binding} / ${o.sizing.recommendationBinding || o.sizing.binding} |`
     );
   }
   push("");

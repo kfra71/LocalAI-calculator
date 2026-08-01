@@ -81,8 +81,10 @@ const Ladder = ({ sizing }) => {
             </div>`
         )}
       </div>
-      <div class="ladder-note">Binding: <b>${sizing.binding}</b> · minimum ${nf(sizing.minimumUnits)} ·
-        conservative recommendation ${nf(sizing.recommendedUnits)}</div>
+      <div class="ladder-note">
+        Base binding: <b>${sizing.binding}</b> → ${nf(sizing.minimumUnits)} ·
+        Conservative: <b>${sizing.recommendationBinding || sizing.binding}</b> → ${nf(sizing.recommendedUnits)}
+      </div>
     </div>`;
 };
 
@@ -233,8 +235,8 @@ function Wizard({ st, set, r, catalog, onClose, onFinish, onTune }) {
                 n=${best ? `${best.hw.label} · ${best.cost.qty} unit${best.cost.qty === 1 ? "" : "s"}` : "nothing fits"} />
               <${Readout} k="Ownership premium" v=${eur(r.delta)} tone=${premiumOver ? "warn" : "good"}
                 n=${r.premiumActual !== null ? pct(r.premiumActual) + " over the alternative" : ""} />
-              <${Readout} k="Binding constraint" v=${best?.sizing.binding ?? "—"} tone="warn"
-                n="Everything else has slack" />
+              <${Readout} k="Conservative binding" v=${best?.sizing.recommendationBinding || best?.sizing.binding || "—"} tone="warn"
+                n=${`base ${best?.sizing.binding ?? "—"} · ${nf(best?.sizing.recommendedUnits)} units`} />
               <${Readout} k="Peak decode" v=${nf(r.workload.decodePeak) + " tok/s"} tone="hi" />
             </div>
             ${best?.sizing && html`
@@ -570,7 +572,7 @@ function HardwareView({ st, set, r, catalog, onQuote }) {
           <table class="tbl">
             <thead><tr>
               <th>Configuration</th><th style=${{ width: 210 }}>Constraint ladder</th>
-              <th class="num">Aggregate</th><th class="num">CapEx</th><th class="num">Energy</th>
+              <th class="num">Aggregate tok/s</th><th class="num">CapEx</th><th class="num">Energy</th>
               <th class="num">Management</th><th class="num">Service</th><th class="num">Total</th><th class="num">€/1M</th><th></th>
             </tr></thead>
             <tbody>${own.map((o) => Row(o, onQuote))}</tbody>
@@ -583,7 +585,7 @@ function HardwareView({ st, set, r, catalog, onQuote }) {
           <table class="tbl">
             <thead><tr>
               <th>Option</th><th style=${{ width: 210 }}>Constraint ladder</th>
-              <th class="num">Aggregate</th><th class="num">CapEx</th><th class="num">Energy</th>
+              <th class="num">Aggregate tok/s</th><th class="num">CapEx</th><th class="num">Energy</th>
               <th class="num">Management</th><th class="num">Service</th><th class="num">Total</th><th class="num">€/1M</th><th></th>
             </tr></thead>
             <tbody>${alt.map((o) => Row(o, onQuote))}</tbody>
@@ -803,8 +805,8 @@ function ResultsView({ st, r, sensitivity, onQuote }) {
           n="Sanity-check this against your team" />
         <${Readout} k="Energy utilisation" v=${pct(best?.cost.utilizationUsed || 0)}
           n=${best?.cost.energyBasis === "derived" ? "derived from annual serving demand" : "manual override"} />
-        <${Readout} k="Binding constraint" v=${best?.sizing.binding ?? "—"} tone="warn"
-          n="Everything else has slack" />
+        <${Readout} k="Conservative binding" v=${best?.sizing.recommendationBinding || best?.sizing.binding || "—"} tone="warn"
+          n=${`base ${best?.sizing.binding ?? "—"} · min ${nf(best?.sizing.minimumUnits)} · rec ${nf(best?.sizing.recommendedUnits)}`} />
       </div>
 
       <${Panel} title="Request a quote" hint="buy or deploy a configuration">
@@ -817,7 +819,7 @@ function ResultsView({ st, r, sensitivity, onQuote }) {
             disabled=${!best?.sizing?.fits || !best?.eligibility?.eligible || best?.cost?.underProvisioned}>
             Quote cheapest owned${best?.sizing?.fits ? ` — ${best.hw.label}` : ""}
           </button>
-          ${r.bestAlt?.sizing?.fits && html`
+          ${r.bestAlt?.sizing?.fits && r.bestAlt?.eligibility?.eligible && !r.bestAlt?.cost?.underProvisioned && html`
             <button class="btn" type="button" onClick=${() => onQuote(r.bestAlt)}>
               Quote alternative — ${r.bestAlt.hw.label}
             </button>`}
@@ -1108,7 +1110,8 @@ function ExportView({ st, r, onImport, onExport, onMarkdown, onReset, onQuote })
         <p class="lede" style=${{ marginBottom: 12 }}>
           Ready to buy or deploy? We copy a Bindwidth scenario summary to your clipboard and open a Google Form.
         </p>
-        <button class="btn primary" type="button" onClick=${() => onQuote(r.bestOwn || null)}>
+        <button class="btn primary" type="button" onClick=${() => onQuote(r.bestOwn || null)}
+          disabled=${!r.validation?.valid || !r.bestOwn?.sizing?.fits || !r.bestOwn?.eligibility?.eligible || r.bestOwn?.cost?.underProvisioned}>
           Request a quote
         </button>
       <//>
@@ -1217,22 +1220,31 @@ function App({ catalog }) {
     [st, profileList]
   );
 
+  const canQuote = useCallback((option = null) => {
+    if (!r?.validation?.valid) return false;
+    const target = option || r.bestOwn;
+    return !!(target?.sizing?.fits && target?.eligibility?.eligible && !target?.cost?.underProvisioned);
+  }, [r]);
+
   const handleQuote = useCallback(async (option = null) => {
     if (!r) return;
     const target = option || r.bestOwn;
-    if (!target?.eligibility?.eligible || target?.cost?.underProvisioned || !r.validation.valid) {
+    if (!canQuote(target)) {
       say("This option is invalid, ineligible, or under-provisioned and cannot be quoted.", true);
       return;
     }
     const result = await openRfqForm(st, r, target);
     say(result.message, result.err);
-  }, [st, r]);
+  }, [st, r, canQuote]);
 
   const handleImport = async (file) => {
     try {
       const data = await importJson(file);
       setSt(data.state);
-      say(`Loaded “${data.scenarioName || "scenario"}”.`);
+      const migrated = data.migrationsApplied?.length
+        ? ` Migrated: ${data.migrationsApplied.join(", ")}.`
+        : "";
+      say(`Loaded “${data.scenarioName || "scenario"}”.${migrated}`);
     } catch (e) { say(e.message, true); }
   };
 
@@ -1250,7 +1262,8 @@ function App({ catalog }) {
             <button class="btn ghost-dark sm" type="button" onClick=${openWizard}>Guided setup</button>
             <button class="btn ghost-dark sm" onClick=${() => exportMarkdown(st, r)}>Markdown</button>
             <button class="btn ghost-dark sm" onClick=${() => exportJson(st, r)}>JSON</button>
-            <button class="btn ghost-dark sm" type="button" onClick=${() => handleQuote(r.bestOwn || null)}>
+            <button class="btn ghost-dark sm" type="button" onClick=${() => handleQuote(r.bestOwn || null)}
+              disabled=${!canQuote()}>
               Request quote
             </button>
           </div>
@@ -1301,7 +1314,8 @@ function App({ catalog }) {
               its configuration cannot be reproduced.
             </p>
             <p>
-              <button class="btn sm" type="button" onClick=${() => handleQuote(r.bestOwn || null)}>
+              <button class="btn sm" type="button" onClick=${() => handleQuote(r.bestOwn || null)}
+                disabled=${!canQuote()}>
                 Request a quote
               </button>
             </p>
@@ -1324,10 +1338,12 @@ function App({ catalog }) {
         <div class="cell"><span class="k">Premium for owning</span>
           <span class=${"v " + (r.delta > 0 ? "pos" : "neg")}>${eur(r.delta)}</span></div>
         <div class="cell"><span class="k">Per head / year</span><span class="v">${eur(r.perHeadOwn)}</span></div>
-        <div class="cell"><span class="k">Binding</span><span class="v">${r.bestOwn?.sizing.binding ?? "—"}</span></div>
+        <div class="cell"><span class="k">Conservative bind</span>
+          <span class="v">${r.bestOwn?.sizing.recommendationBinding || r.bestOwn?.sizing.binding || "—"}</span></div>
         <div class="spacer"></div>
         <div class="cell"><span class="k">Peak decode</span><span class="v">${nf(r.workload.decodePeak)} <span style=${{ fontSize: 11, color: "#8d93a0" }}>tok/s</span></span></div>
-        <button class="btn sm primary" type="button" onClick=${() => handleQuote(r.bestOwn || null)}>
+        <button class="btn sm primary" type="button" onClick=${() => handleQuote(r.bestOwn || null)}
+          disabled=${!canQuote()}>
           Request quote
         </button>
       </div>
