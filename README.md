@@ -1,5 +1,7 @@
 # Bindwidth
 
+**Size your way to private local AI.**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-GitHub%20Pages-2ea44f)](https://juxhinr.github.io/bindwidth/)
 [![GitHub stars](https://img.shields.io/github/stars/juxhinr/bindwidth?style=social)](https://github.com/juxhinr/bindwidth/stargazers)
@@ -8,13 +10,13 @@
 [![Made with JavaScript](https://img.shields.io/badge/made%20with-JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://github.com/juxhinr/bindwidth)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-blue.svg)](CONTRIBUTING.md)
 
-> Find the constraint that actually binds.
+> Find the constraint that actually binds — then size the private local stack that fits.
 
 Three limits decide the technical minimum for one resident text model:
 memory for the KV cache, combined prefill/decode serving capacity, and the runtime session ceiling. They are
 evaluated explicitly and one or more can bind — usually not the limit people size
 for. Bindwidth finds them, prices them, and compares eligible alternatives
-you can actually use.
+you can actually use on the path to private local AI.
 
 Frontend only. No build step, no server, no database, no account, no telemetry.
 Everything runs in your browser tab and nothing you type is transmitted anywhere.
@@ -70,7 +72,8 @@ not a procurement quote; validate the exact model, runtime and hardware before p
 
 *Bandwidth* is what physically decides how fast a model decodes: bytes read per token,
 divided into memory bandwidth, gives you the ceiling. And of the three constraints that
-set your machine count, one *binds*. Both readings are the tool.
+set your machine count, one *binds*. Both readings are the tool — and sizing against the
+right bind is how you find your way to private local AI.
 
 ## Quick start
 

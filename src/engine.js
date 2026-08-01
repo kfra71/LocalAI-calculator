@@ -565,13 +565,22 @@ function regionsOverlap(a, b) {
 
 function optionEligibility(hw, st, sizing, cost) {
   const reasons = [];
+  const referenceNotes = [];
   const req = st.requirements || {};
-  if (req.sovereignOnly && hw.kind !== "own" && hw.sovereign !== true) {
+  // EU / sovereignty for rentals is labelled for reference only — hard-excluding
+  // them leaves the rent comparison empty when EU catalogue options do not fit.
+  if (hw.kind === "rent") {
+    if (req.sovereignOnly && hw.sovereign !== true) {
+      referenceNotes.push("Outside the sovereign preference — shown for reference.");
+    }
+    if (req.regions?.length && hw.region) {
+      const regionMatches = req.regions.some((region) => regionsOverlap(region, hw.region));
+      if (!regionMatches) {
+        referenceNotes.push("Provider region is outside the preferred regions — shown for reference.");
+      }
+    }
+  } else if (req.sovereignOnly && hw.kind !== "own" && hw.sovereign !== true) {
     reasons.push("Not eligible under the sovereign-only requirement.");
-  }
-  if (req.regions?.length && hw.kind === "rent" && hw.region) {
-    const regionMatches = req.regions.some((region) => regionsOverlap(region, hw.region));
-    if (!regionMatches) reasons.push("Provider region is outside the allowed regions.");
   }
   if (req.requireEquivalentCapability && hw.equivalentCapability === false) {
     reasons.push("Equivalent model capability has not been established.");
@@ -581,7 +590,12 @@ function optionEligibility(hw, st, sizing, cost) {
   if (actual < minimum) reasons.push("Evidence confidence is below the scenario minimum.");
   if (!sizing.fits) reasons.push("The model does not fit or the deployment is incompatible.");
   if (cost.underProvisioned) reasons.push("Manual quantity is below the conservative production recommendation.");
-  return { eligible: reasons.length === 0, reasons };
+  return {
+    eligible: reasons.length === 0,
+    reasons,
+    referenceNotes,
+    referenceOnly: referenceNotes.length > 0,
+  };
 }
 
 /* ------------------------------------------------------------------ *

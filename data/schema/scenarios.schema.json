@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth guided-setup scenario presets",
+  "type": "object",
+  "required": ["scenarios"],
+  "properties": {
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "group", "label", "blurb", "patch"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "group": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "blurb": { "type": "string", "minLength": 1 },
+          "patch": {
+            "type": "object",
+            "required": ["scenarioName", "org", "workload", "agents"],
+            "properties": {
+              "scenarioName": { "type": "string" },
+              "org": { "type": "object" },
+              "workload": { "type": "object" },
+              "agents": { "type": "object" },
+              "resilience": { "type": "object" },
+              "requirements": { "type": "object" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

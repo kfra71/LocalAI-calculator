@@ -221,9 +221,12 @@ console.log("\n— eligibility and manual under-provisioning —");
   const manual = r.options.find((o) => o.hw.id === "rtxpro-4x");
   truthy("manual quantity below minimum is flagged", manual.cost.underProvisioned);
   truthy("under-provisioned option is ineligible", !manual.eligibility.eligible);
-  truthy("sovereign-only best alternative is sovereign", r.bestAlt?.hw.sovereign === true);
-  truthy("non-sovereign options stay visible as references",
-    r.options.some((o) => o.hw.sovereign === false && !o.eligibility.eligible));
+  truthy("non-EU rentals remain eligible for the cost comparison",
+    r.options.some((o) => o.kind === "rent" && o.hw.sovereign === false && o.eligibility.eligible));
+  truthy("non-EU rentals are labelled as reference only",
+    r.options.some((o) => o.kind === "rent" && o.hw.sovereign === false && o.eligibility.referenceOnly));
+  truthy("rent comparison can select a fitting rental",
+    r.bestAlt?.kind === "rent" && r.bestAlt?.sizing?.fits);
 
   const manualConservative = baseState();
   const spark = manualConservative.hardware.find((h) => h.id === "spark-2x");
@@ -262,14 +265,16 @@ console.log("\n— region match, peakManual sensitivity, recommendation binding 
   st.requirements.sovereignOnly = false;
   const r = compute(st, profiles);
   const scaleway = r.options.find((o) => o.hw.id === "scaleway-b300-8x");
-  truthy("Scaleway France/Netherlands matches EU (France) region filter",
-    !scaleway.eligibility.reasons.includes("Provider region is outside the allowed regions."));
+  truthy("Scaleway France/Netherlands matches EU (France) region preference",
+    !scaleway.eligibility.referenceNotes.some((n) => n.includes("preferred regions")));
+  truthy("matching region preference keeps rental eligible", scaleway.eligibility.eligible);
   const usOnly = baseState();
   usOnly.requirements.regions = ["US"];
   usOnly.requirements.sovereignOnly = false;
   const usScaleway = compute(usOnly, profiles).options.find((o) => o.hw.id === "scaleway-b300-8x");
-  truthy("Scaleway does not match a US-only region filter",
-    usScaleway.eligibility.reasons.includes("Provider region is outside the allowed regions."));
+  truthy("Scaleway outside a US-only preference is reference-labelled, not excluded",
+    usScaleway.eligibility.eligible &&
+    usScaleway.eligibility.referenceNotes.some((n) => n.includes("preferred regions")));
 
   const peak = baseState();
   peak.workload.peakManual = 5;

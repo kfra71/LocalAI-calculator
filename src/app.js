@@ -2,7 +2,7 @@ import React from "https://esm.sh/react@18.3.1";
 import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
 import htm from "https://esm.sh/htm@3.1.1";
 import { compute, computeSensitivity, packages } from "./engine.js";
-import { exportJson, exportMarkdown, importJson } from "./io.js";
+import { APP_TAGLINE, applyScenarioPatch, exportJson, exportMarkdown, importJson } from "./io.js";
 import { openRfqForm } from "./rfq.js";
 
 const html = htm.bind(React.createElement);
@@ -93,18 +93,35 @@ const Ladder = ({ sizing }) => {
 const WIZARD_KEY = "bindwidth.wizard.done";
 const WIZARD_STEPS = [
   { id: "welcome", label: "Welcome" },
-  { id: "team", label: "Team" },
+  { id: "scenario", label: "Scenario" },
   { id: "model", label: "Model" },
   { id: "result", label: "Result" },
 ];
 
-function Wizard({ st, set, r, catalog, onClose, onFinish, onTune }) {
+function groupScenarios(scenarios = []) {
+  const groups = [];
+  const byName = new Map();
+  for (const sc of scenarios) {
+    if (!byName.has(sc.group)) {
+      const g = { name: sc.group, items: [] };
+      byName.set(sc.group, g);
+      groups.push(g);
+    }
+    byName.get(sc.group).items.push(sc);
+  }
+  return groups;
+}
+
+function Wizard({ st, set, r, catalog, scenarios = [], selectedPresetId, onSelectPreset, onClose, onFinish, onTune }) {
   const [step, setStep] = useState(0);
   const dialogRef = useRef(null);
   const previouslyFocused = useRef(null);
   const m = st.model;
   const best = r?.bestOwn;
   const premiumOver = r && r.premiumActual !== null && r.premiumActual > r.premiumAccepted;
+  const scenarioGroups = useMemo(() => groupScenarios(scenarios), [scenarios]);
+  const selectedPreset = scenarios.find((s) => s.id === selectedPresetId) || null;
+  const headcount = (st.org?.devs || 0) + (st.org?.marketing || 0) + (st.org?.admin || 0);
 
   useEffect(() => {
     previouslyFocused.current = document.activeElement;
@@ -165,33 +182,54 @@ function Wizard({ st, set, r, catalog, onClose, onFinish, onTune }) {
 
         <div class="wizard-body">
           ${stepId === "welcome" && html`
-            <h2 id="wizard-title">Size your first configuration</h2>
+            <h2 id="wizard-title">${APP_TAGLINE}</h2>
             <p class="lede">
               Bindwidth finds which constraint binds — KV memory, combined prefill/decode serving, or session ceiling —
-              and prices owned hardware against the alternatives you can use. Answer two questions and you’ll have a
-              first result in seconds; everything else stays at sensible defaults until you want to tune it.
+              and prices owned hardware against the alternatives you can use. Pick a realistic starting scenario so
+              token rates, concurrency, and peaks match the organisation — not a 20-person office pasted onto one laptop.
             </p>
             <div class="note info" style=${{ marginTop: 14 }}>
               Nothing you type leaves this browser tab. Skip anytime to use the full calculator.
             </div>
           `}
 
-          ${stepId === "team" && html`
-            <h2 id="wizard-title">Who uses the model?</h2>
+          ${stepId === "scenario" && html`
+            <h2 id="wizard-title">Which starting scenario?</h2>
             <p class="lede">
-              Developers drive almost all the token volume. The split matters more than the headcount — start rough;
-              you can refine later.
+              Each preset sets headcount <em>and</em> the workload fields behind it — daily tokens, context, caching,
+              peak behaviour, and agents. Pick the closest match; you can refine every field later.
             </p>
-            <div class="wizard-fields">
-              <${Field} label="Developers" sub="Anyone using coding agents through the day" unit="people"
-                value=${st.org.devs} onChange=${(v) => set("org.devs", v)} />
-              <${Field} label="Marketing / sales" sub="Copy, briefs, image and video generation" unit="people"
-                value=${st.org.marketing} onChange=${(v) => set("org.marketing", v)} />
-              <${Field} label="Administrative" sub="Document parsing, email, research" unit="people"
-                value=${st.org.admin} onChange=${(v) => set("org.admin", v)} />
-              <${Field} label="Concurrent agents" sub="Autonomous processes — leave at 0 if you only have interactive users"
-                unit="agents" value=${st.agents.count} onChange=${(v) => set("agents.count", v)} />
+            <div class="wizard-scenario-groups">
+              ${scenarioGroups.map((g) => html`
+                <div key=${g.name} class="wizard-scenario-group">
+                  <h3>${g.name}</h3>
+                  <div class="wizard-scenario-grid">
+                    ${g.items.map((sc) => html`
+                      <button
+                        key=${sc.id}
+                        type="button"
+                        class=${"wizard-scenario-card" + (selectedPresetId === sc.id ? " is-selected" : "")}
+                        onClick=${() => onSelectPreset(sc.id)}
+                        aria-pressed=${selectedPresetId === sc.id}>
+                        <strong>${sc.label}</strong>
+                        <span>${sc.blurb}</span>
+                      </button>`)}
+                  </div>
+                </div>`)}
             </div>
+            ${selectedPreset && html`
+              <div class="wizard-scenario-summary note info" style=${{ marginTop: 14 }}>
+                <b>${selectedPreset.label}.</b>
+                ${nf(headcount)} AI-using staff
+                (${nf(st.org.devs)} developers · ${nf(st.org.admin)} admin · ${nf(st.org.marketing)} marketing)
+                · ${nf(st.agents.count)} agents
+                · ${nf(st.workload.devOut)} out tokens/dev/day
+                ${st.workload.peakManual > 0 ? ` · peak factor ${st.workload.peakManual}` : ""}.
+              </div>`}
+            ${!selectedPreset && html`
+              <div class="note warn" style=${{ marginTop: 14 }}>
+                Select a preset to continue. Raw headcount alone is how people invent four Sparks for one developer.
+              </div>`}
           `}
 
           ${stepId === "model" && html`
@@ -227,7 +265,7 @@ function Wizard({ st, set, r, catalog, onClose, onFinish, onTune }) {
           ${stepId === "result" && html`
             <h2 id="wizard-title">Your first result</h2>
             <p class="lede">
-              With your team and model, this is the cheapest owned option that fits — and which limit is binding.
+              With your scenario and model, this is the cheapest owned option that fits — and which limit is binding.
               Open the full calculator to change workload, hardware, or comparables.
             </p>
             <div class="readouts" style=${{ marginTop: 14 }}>
@@ -251,7 +289,11 @@ function Wizard({ st, set, r, catalog, onClose, onFinish, onTune }) {
           <div class="spacer"></div>
           ${step > 0 && html`<button class="btn" type="button" onClick=${goBack}>Back</button>`}
           ${stepId !== "result"
-            ? html`<button class="btn primary" type="button" onClick=${goNext}>
+            ? html`<button
+                class="btn primary"
+                type="button"
+                onClick=${goNext}
+                disabled=${stepId === "scenario" && !selectedPresetId}>
                 ${stepId === "welcome" ? "Start" : "Continue"}
               </button>`
             : html`
@@ -532,11 +574,14 @@ function HardwareView({ st, set, r, catalog, onQuote }) {
           ${o.sizing.profileConfidence && html`
             <${Badge} kind=${o.sizing.profileConfidence}>profile: ${o.sizing.profileConfidence}<//>`}
           ${o.hw.sovereign === false && html`<${Badge} kind="nonsov">non-EU<//>`}
-          ${o.eligibility && !o.eligibility.eligible && html`<${Badge} kind="bad">reference only<//>`}
+          ${o.eligibility?.referenceOnly && html`<${Badge} kind="nonsov">reference<//>`}
+          ${o.eligibility && !o.eligibility.eligible && html`<${Badge} kind="bad">ineligible<//>`}
         </div>
         <div class="small muted" style=${{ marginTop: 3 }}>
           ${o.hw.topology || o.hw.class}${o.hw.provider ? " · " + o.hw.provider : ""}
         </div>
+        ${o.eligibility?.referenceNotes?.length > 0 && html`
+          <div class="small muted" style=${{ marginTop: 3 }}>${o.eligibility.referenceNotes.join(" ")}</div>`}
         ${o.eligibility && !o.eligibility.eligible && html`
           <div class="small" style=${{ marginTop: 3 }}>${o.eligibility.reasons.join(" ")}</div>`}
         ${o.sizing.warnings?.length > 0 && html`
@@ -720,12 +765,12 @@ function ComparablesView({ st, set, catalog }) {
             <${Field} label="Expected model-serving hardware life" sub="Shorter than the horizon triggers replacement CapEx"
               unit="years" value=${st.costs.modelLifeYears}
               onChange=${(v) => set("costs.modelLifeYears", v)} />
-            <${Check} label="Sovereign alternatives only"
-              sub="Noncompliant options remain visible but cannot set the headline comparison"
+            <${Check} label="Prefer sovereign alternatives"
+              sub="Non-EU rentals stay in the cost comparison and are labelled as reference only"
               checked=${st.requirements.sovereignOnly}
               onChange=${(v) => set("requirements.sovereignOnly", v)} />
             <div class="field">
-              <label>Allowed rental regions<span class="sub">Comma-separated substrings, for example EU, France</span></label>
+              <label>Preferred rental regions<span class="sub">Reference label only — does not exclude rentals. Comma-separated, for example EU, France</span></label>
               <input type="text" value=${(st.requirements.regions || []).join(", ")}
                 onChange=${(e) => set("requirements.regions",
                   e.target.value.split(",").map((x) => x.trim()).filter(Boolean))} />
@@ -1164,10 +1209,12 @@ function App({ catalog }) {
   const [st, setSt] = useState(build);
   const [tab, setTab] = useState("team");
   const [toast, setToast] = useState(null);
+  const [selectedPresetId, setSelectedPresetId] = useState(null);
   const [wizardOpen, setWizardOpen] = useState(() => {
     try { return localStorage.getItem(WIZARD_KEY) !== "1"; }
     catch { return true; }
   });
+  const scenarioList = catalog.scenarios?.scenarios || [];
 
   const say = (msg, err) => { setToast({ msg, err }); setTimeout(() => setToast(null), 3800); };
 
@@ -1184,6 +1231,13 @@ function App({ catalog }) {
       return next;
     });
   }, []);
+
+  const applyPreset = useCallback((id) => {
+    const preset = scenarioList.find((s) => s.id === id);
+    if (!preset) return;
+    setSelectedPresetId(id);
+    setSt((prev) => applyScenarioPatch(prev, preset.patch));
+  }, [scenarioList]);
 
   const markWizardDone = useCallback(() => {
     try { localStorage.setItem(WIZARD_KEY, "1"); } catch { /* private mode */ }
@@ -1253,7 +1307,7 @@ function App({ catalog }) {
   return html`
     <div class="app">
       <header class="masthead">
-        <div class="wordmark">Bindwidth <span class="dim">which constraint binds?</span></div>
+        <div class="wordmark">Bindwidth <span class="dim">${APP_TAGLINE.toLowerCase()}</span></div>
         <div class="spacer"></div>
         <div class="masthead-tools">
           <input class="scenario" placeholder="Name this scenario" value=${st.scenarioName}
@@ -1290,16 +1344,17 @@ function App({ catalog }) {
           onImport=${handleImport} onExport=${() => exportJson(st, r)}
           onMarkdown=${() => exportMarkdown(st, r)}
           onQuote=${handleQuote}
-          onReset=${() => { setSt(build()); say("Back to defaults."); }} />`}
+          onReset=${() => { setSelectedPresetId(null); setSt(build()); say("Back to defaults."); }} />`}
       </main>
 
       <footer class="foot">
         <div class="foot-in">
           <div>
-            <h4>Why the name</h4>
+            <h4>${APP_TAGLINE}</h4>
             <p>
               Memory bandwidth strongly influences decode, while prefill shares the same accelerator time.
-              KV memory, combined serving and runtime sessions can tie as binding limits. Bindwidth surfaces them.
+              KV memory, combined serving and runtime sessions can tie as binding limits. Bindwidth surfaces them
+              so you can size a private local stack against what actually binds.
             </p>
             <p>
               Frontend only. Nothing you type is transmitted anywhere. Add hardware, models and benchmarks by
@@ -1352,6 +1407,9 @@ function App({ catalog }) {
 
       ${wizardOpen && html`<${Wizard}
         st=${st} set=${set} r=${r} catalog=${catalog.models}
+        scenarios=${scenarioList}
+        selectedPresetId=${selectedPresetId}
+        onSelectPreset=${applyPreset}
         onClose=${closeWizard} onFinish=${finishWizard} onTune=${tuneWizard} />`}
     </div>`;
 }
@@ -1361,15 +1419,15 @@ function App({ catalog }) {
 async function boot() {
   const el = document.getElementById("root");
   try {
-    const [models, hardware, defaults, benchmarks, profiles] = await Promise.all(
-      ["models", "hardware", "defaults", "benchmarks", "profiles"].map((n) =>
+    const [models, hardware, defaults, benchmarks, profiles, scenarios] = await Promise.all(
+      ["models", "hardware", "defaults", "benchmarks", "profiles", "scenarios"].map((n) =>
         fetch(`./data/${n}.json`).then((res) => {
           if (!res.ok) throw new Error(`data/${n}.json — ${res.status}`);
           return res.json();
         })
       )
     );
-    createRoot(el).render(html`<${App} catalog=${{ models, hardware, defaults, benchmarks, profiles }} />`);
+    createRoot(el).render(html`<${App} catalog=${{ models, hardware, defaults, benchmarks, profiles, scenarios }} />`);
   } catch (e) {
     el.innerHTML =
       `<div style="max-width:640px;margin:80px auto;padding:24px;font-family:system-ui">

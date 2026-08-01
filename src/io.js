@@ -6,6 +6,7 @@ import { validateState } from "./engine.js";
 
 export const SCHEMA_VERSION = 2;
 export const APP_NAME = "Bindwidth";
+export const APP_TAGLINE = "Size your way to private local AI";
 
 const V2_DEFAULTS = {
   workload: {
@@ -33,6 +34,29 @@ const V2_DEFAULTS = {
   profileOverrides: {},
   manualQty: {},
 };
+
+const SCENARIO_PATCH_KEYS = ["org", "workload", "agents", "resilience", "requirements"];
+
+/**
+ * Apply a guided-setup preset patch onto an existing state.
+ * Deep-merges sizing-relevant objects and sets scenarioName.
+ * Leaves model, hardware, economics, and staff rates untouched.
+ */
+export function applyScenarioPatch(state, patch) {
+  if (!state || !patch) {
+    throw new Error("applyScenarioPatch requires a state object and a patch.");
+  }
+  const next = { ...state };
+  if (typeof patch.scenarioName === "string") {
+    next.scenarioName = patch.scenarioName;
+  }
+  for (const key of SCENARIO_PATCH_KEYS) {
+    if (patch[key] && typeof patch[key] === "object") {
+      next[key] = { ...(state[key] || {}), ...patch[key] };
+    }
+  }
+  return next;
+}
 
 export function migratePayload(payload) {
   const from = Number(payload.schemaVersion || 1);
@@ -127,6 +151,8 @@ export function buildExportPayload(state, results) {
             kind: o.kind,
             eligible: o.eligibility?.eligible ?? true,
             eligibilityReasons: o.eligibility?.reasons ?? [],
+            referenceOnly: o.eligibility?.referenceOnly ?? false,
+            referenceNotes: o.eligibility?.referenceNotes ?? [],
             profileId: o.sizing.profileId ?? null,
             profileConfidence: o.sizing.profileConfidence ?? o.hw.confidence ?? null,
             precision: o.sizing.precision ?? null,
@@ -217,9 +243,15 @@ export function buildMarkdown(state, r) {
   push("### Comparability and eligibility", "");
   push(
     "Options are compared on the same workload shape, not guaranteed model quality, latency, context, tools, availability, or legal suitability.",
-    `Sovereign-only alternatives: ${st.requirements?.sovereignOnly ? "yes" : "no"}.`,
+    `Prefer sovereign alternatives: ${st.requirements?.sovereignOnly ? "yes" : "no"}.`,
+    "EU / region preference for rentals is labelled for reference only and does not exclude them from the cost comparison.",
     ""
   );
+  const referenced = r.options.filter((o) => o.eligibility?.referenceOnly);
+  if (referenced.length) {
+    push("Reference rentals:", "");
+    push(...referenced.map((o) => `- ${o.hw.label}: ${o.eligibility.referenceNotes.join(" ")}`), "");
+  }
   const excluded = r.options.filter((o) => o.eligibility && !o.eligibility.eligible);
   if (excluded.length) {
     push(...excluded.map((o) => `- ${o.hw.label}: ${o.eligibility.reasons.join(" ")}`), "");
