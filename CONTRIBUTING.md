@@ -53,9 +53,9 @@ Six numbers drive everything. Getting them right matters more than getting them 
 
 **How to derive `kvKbPerToken` honestly.** Do not read it off a spec sheet. Take a real
 run: `(usable memory − weights − overhead) ÷ measured KV pool`. State the run in
-`notes`. If two runs disagree, say so rather than picking one — the current DeepSeek
-entries carry exactly that unresolved contradiction, and that is the correct way to
-record it.
+`notes`. If two runs disagree, say so rather than picking one — or split them into
+separate catalogue entries when the configurations differ (e.g. NVFP4 KV vs FP8 KV).
+The DeepSeek Flash NVFP4 and FP8 rows are the worked example.
 
 **`bytesPerParam` must be consistent with the measured weight size.** If a checkpoint
 labelled FP8 measures 167 GB across 284B parameters, that is 0.588 bytes per parameter,
@@ -120,7 +120,21 @@ Include:
 - caveats in the `caveats` array, one per line, plainly
 
 Open inconsistencies belong here too. If your numbers contradict an existing entry,
-record the contradiction rather than resolving it silently.
+record the contradiction rather than resolving it silently — or split catalogue rows
+when the configurations are not comparable.
+
+### First-party measured runs
+
+Prefer opening a
+[benchmark issue](https://github.com/juxhinr/bindwidth/issues/new?template=benchmark.yml)
+when you ran the box yourself. Mark provenance as **first-party measured** and complete
+the checklist: pinned build/digest, full flags, concurrency + context, soak duration,
+failure modes, and willingness to help map values into `profiles.json` after review.
+
+Use `"confidence": "measured"` only for first-party soaks you can re-verify. Published
+recipes stay `published`; unverified third-party reports stay `community`. The catalogue
+will not invent measured numbers — your run lands in `benchmarks.json` first, then in a
+matched profile once reviewed.
 
 ## Code changes
 

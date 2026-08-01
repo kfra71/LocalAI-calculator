@@ -69,10 +69,102 @@
         "max_num_seqs > 4 fails deterministically on the first request. Root cause is a hardcoded prefill chunk size feeding an empty padding slice into the sparse MLA kernel. This is an implementation defect, not an architectural limit - a production build should not carry it.",
         "Upstream vLLM does not load this release at all, so the build under test is not what you would run in production.",
         "confidence_head is fully wired in this build but defaults to a threshold of 0, i.e. present and unused.",
-        "OPEN INCONSISTENCY: the KV per token implied here (~10.6 KB with FP8 KV) contradicts the DGX Spark recipe (~27 KB with NVFP4 KV). NVFP4 should be more compact, not double.",
-        "OPEN INCONSISTENCY: 167 GB across 284 billion declared parameters is 0.588 bytes per parameter, so not pure FP8. Either the checkpoint is mixed, or the 284B figure does not describe this variant."
+        "RESOLVED vs Spark NVFP4-KV: this run used FP8 KV on a different checkpoint. The ~10.6 KB/token figure belongs on deepseek-v4-flash-0731-fp8 only; it is not a second sample of the NVFP4-KV Spark path (~27.77 KB/token).",
+        "167 GB across 284 billion declared parameters is 0.588 bytes per parameter, so not pure FP8. Either the checkpoint is mixed, or the 284B figure does not describe this variant."
       ],
       "highlight": "The most interesting result is a non-result: the author expected an SM120 kernel wall and never hit one. Measured efficiency is around 28.5% against the 6% this tool assumes conservatively for that column."
+    },
+    {
+      "id": "qwen36-spark-nvfp4-2026",
+      "date": "2026",
+      "confidence": "published",
+      "model": "Qwen3.6 35B-A3B NVFP4",
+      "hardware": "1x DGX Spark / GB10 (128 GB UMA)",
+      "config": "vLLM 0.25.0 ARM64 / FlashInfer B12X NVFP4 MoE / FP8 KV / native MTP-3 / max_model_len 262144 / unsloth Qwen3.6-35B-A3B-NVFP4-Fast (NNNtrance recipe)",
+      "metrics": [
+        { "label": "Single-stream decode (C1)", "value": "91.5 tok/s", "note": "mean TPOT 10.32 ms" },
+        { "label": "Aggregate at concurrency 16", "value": "370.8 tok/s", "note": "" },
+        { "label": "Aggregate gate at concurrency 64", "value": "707.0 tok/s", "note": "application-shaped" },
+        { "label": "Ten-minute soak", "value": "756 requests / 355,226 tokens", "note": "mixed C12/C32/C64; zero errors" },
+        { "label": "KV pool", "value": "5,359,388 tokens in 62.08 GiB", "note": "→ 11.58 KB/token; 20.44× full 262K windows" }
+      ],
+      "qualification": "Pinned public recipe with soak: 756 completed requests, zero stalls, GPU util ~94%.",
+      "caveats": [
+        "Recipe targets a single 128 GB Spark / Ascent GX10, not the catalogue 2x Spark TP=2 topology. Profile on spark-2x treats the appliance as able to host this single-node recipe (or two replicas); do not assume TP=2 decode equals 2× these numbers.",
+        "MTP acceptance varies by prompt class; treat aggregate bands as stack-specific, not architecture ceilings."
+      ],
+      "sources": ["https://github.com/NNNtrance/Qwen3.6-35B-A3B-NVFP4-Fast-DGX-Spark"]
+    },
+    {
+      "id": "qwen36-rtxpro-2026",
+      "date": "2026",
+      "confidence": "community",
+      "model": "Qwen3.6 35B-A3B (bf16 blog) / NVFP4 community claims",
+      "hardware": "1x RTX PRO 6000 Blackwell (96 GB)",
+      "config": "Community blog: full bf16, single GPU, no offload. Separate HF notes claim NVFP4 MoE path on the same SKU with custom vLLM images.",
+      "metrics": [
+        { "label": "Single-stream decode (bf16)", "value": "217.84 tok/s", "note": "Vadi Taslim blog; not NVFP4" },
+        { "label": "TTFT avg (bf16)", "value": "47 ms", "note": "" },
+        { "label": "8K context throughput (bf16)", "value": "124–147 tok/s", "note": "tuned vs baseline" }
+      ],
+      "qualification": "Unverified community report for bf16; NVFP4 on RTX PRO is claimed compatible by quant authors but lacks a pinned public soak matching the Spark recipe.",
+      "caveats": [
+        "The solid number is bf16 on one card. Catalogue profile for rtxpro-2x is community and uses that as a lower bound while assuming NVFP4 and a second card improve aggregate — treat as directional only.",
+        "Do not promote this to published until a pinned NVFP4 recipe with concurrency sweep exists for 1× or 2× RTX PRO 6000."
+      ],
+      "sources": [
+        "https://www.vaditaslim.com/blog/ai/qwen3.6-benchmarks-rtx-pro-6000",
+        "https://huggingface.co/AEON-7/Qwen3.6-35B-A3B-heretic-NVFP4"
+      ]
+    },
+    {
+      "id": "gptoss-trtllm-2026",
+      "date": "2026",
+      "confidence": "published",
+      "model": "gpt-oss-120b (FP4 / FP8)",
+      "hardware": "NVIDIA TRT-LLM reference: B200, GB200, H200, H100",
+      "config": "trtllm-bench offline max-throughput / PyTorch backend / published ModelOpt checkpoints / ISL/OSL sweeps per NVIDIA perf overview",
+      "metrics": [
+        { "label": "B200 DEP2 FP4 @ 1000/1000", "value": "25,943 tok/s/GPU", "note": "output tokens per GPU" },
+        { "label": "GB200 TP1 FP4 @ 1000/1000", "value": "27,198 tok/s/GPU", "note": "" },
+        { "label": "H200 TP1 FP8 @ 1000/1000", "value": "6,868 tok/s/GPU", "note": "" },
+        { "label": "H100 DEP4 FP8 @ 1000/1000", "value": "4,685 tok/s/GPU", "note": "" },
+        { "label": "B200 DEP2 FP4 @ 8192/1024", "value": "6,111 tok/s/GPU", "note": "long prefill" },
+        { "label": "B200 DEP2 FP4 @ 32768/1024", "value": "1,392 tok/s/GPU", "note": "longest published ISL in the table" },
+        { "label": "GB200 TP1 FP4 @ 32768/1024", "value": "1,645 tok/s/GPU", "note": "" },
+        { "label": "H200 TP1 FP8 @ 8192/1024", "value": "1,828 tok/s/GPU", "note": "long prefill" },
+        { "label": "H200 TP1 FP8 @ 32768/1024", "value": "519 tok/s/GPU", "note": "longest published ISL in the table" }
+      ],
+      "qualification": "Vendor-published tables with documented trtllm-bench reproduce steps. Not first-party Bindwidth runs.",
+      "caveats": [
+        "Offline synthetic max-throughput, not realistic mixed traffic. Same caveat class as DeepSeek synthetic vs realistic split.",
+        "B300 ≠ B200 and Station GB300 ≠ GB200 NVL72. Catalogue profiles that map onto those SKUs are marked derived and should be read as order-of-magnitude yardsticks.",
+        "Per-GPU figures; a multi-GPU catalogue unit must state TP/DP assumptions when aggregating.",
+        "Longest published sequence in these tables is 32,768 input tokens. Bindwidth defaults (100k people / 180k agents) exceed that — profiles fall back to the bandwidth estimate and warn."
+      ],
+      "sources": ["https://nvidia.github.io/TensorRT-LLM/developer-guide/perf-overview.html"]
+    },
+    {
+      "id": "qwen35-trtllm-deploy-2026",
+      "date": "2026",
+      "confidence": "published",
+      "model": "Qwen3.5 397B-A17B NVFP4",
+      "hardware": "4x B200 / B300 / GB200 / GB300 (NVIDIA minimum)",
+      "config": "trtllm-serve nvidia/Qwen3.5-397B-A17B-NVFP4 — tensor_parallel_size=4, moe_expert_parallel_size=4, enable_attention_dp=true, moe_config.backend=CUTEDSL, kv_cache free_gpu_memory_fraction=0.8, max_batch_size=512 (curated qwen3.5.yaml)",
+      "metrics": [
+        { "label": "Minimum GPUs (NVFP4)", "value": "4× Blackwell", "note": "B200/B300/GB200/GB300 validated for fit" },
+        { "label": "Parallelism", "value": "TP=4 EP=4", "note": "attention DP on" },
+        { "label": "Published tok/s table", "value": "not in deploy guide", "note": "use benchmark_serving.py locally; catalogue profile decode is derived" }
+      ],
+      "qualification": "Vendor deployment guide with pinned container tag pattern and curated YAML. Validates multi-GPU footprint, not a Bindwidth first-party soak.",
+      "caveats": [
+        "No official tok/s table in the deploy guide — decode bands in qwen35-b300-4x-nvfp4 are derived placeholders pending a first-party or vendor throughput sweep.",
+        "Guide also covers Hopper; catalogue pairs the NVFP4 checkpoint with b300-4x (Blackwell)."
+      ],
+      "sources": [
+        "https://nvidia.github.io/TensorRT-LLM/latest/deployment-guide/deployment-guide-for-qwen3.5-on-trtllm.html",
+        "https://huggingface.co/nvidia/Qwen3.5-397B-A17B-NVFP4"
+      ]
     }
   ]
 }

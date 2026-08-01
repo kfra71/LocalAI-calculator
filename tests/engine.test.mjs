@@ -35,7 +35,8 @@ const baseState = () => ({
   resilience: { ...defaults.resilience }, requirements: { ...defaults.requirements },
   media: { ...defaults.media }, costs: { ...defaults.costs },
   uncertainty: { ...defaults.uncertainty },
-  model: { ...models.models[0] },
+  // Pin DeepSeek for arithmetic regression pins; product default is models[0] (Qwen).
+  model: { ...models.models.find((m) => m.id === "deepseek-v4-flash-0731") },
   hardware: hardware.hardware.map((h) => ({ ...h, enabled: true })),
   manualQty: {},
 });
@@ -193,7 +194,7 @@ console.log("\n— combined serving load shares accelerator time —");
 console.log("\n— precision, validation, and production recommendation —");
 {
   const st = baseState();
-  st.model = { ...models.models[1] };
+  st.model = { ...models.models.find((m) => m.id === "deepseek-v4-flash-0731-fp8") };
   const h200 = st.hardware.find((h) => h.id === "h200-4x");
   const fp8 = sizeOption(h200, st, workload(st));
   check("FP8 checkpoint is not doubled on H200", fp8.weightsGb, 284 * 0.588);

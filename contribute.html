@@ -93,8 +93,22 @@
       <li>The exact engine build (a commit hash, not “latest”)</li>
       <li>Flags, concurrency, and whether traffic was synthetic or realistic</li>
       <li>Failure modes — a run that documents what broke is more useful than a happy path alone</li>
-      <li>Open contradictions left visible, not quietly averaged away</li>
+      <li>Open contradictions left visible, not quietly averaged away — or split into separate catalogue rows when the configurations differ (e.g. NVFP4 KV vs FP8 KV)</li>
     </ul>
+
+    <h2>First-party measured runs</h2>
+    <p>
+      The catalogue can accept your own hardware soaks via the existing benchmark issue
+      template. Prefer first-party when you operated the box: pinned build, full flags,
+      concurrency and context, soak duration, and failure modes (even “none observed”).
+      Reviewed values move into <code>profiles.json</code> only after that review — the
+      calculator never invents a measured number.
+    </p>
+    <p>
+      Open a
+      <a href="https://github.com/juxhinr/bindwidth/issues/new?template=benchmark.yml" target="_blank" rel="noopener">benchmark issue</a>
+      or edit <code>data/benchmarks.json</code> directly with confidence <code>measured</code>.
+    </p>
     <p>
       Full field-by-field guidance lives in
       <a href="https://github.com/juxhinr/bindwidth/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">CONTRIBUTING.md</a>

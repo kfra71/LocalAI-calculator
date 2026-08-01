@@ -192,9 +192,10 @@ Confidence levels are part of the data, not a disclaimer:
 | `derived` / `kv-derived` | Calculated from another measurement; inspect the stated derivation and range |
 | `template` | A starting point you are expected to replace |
 
-Open contradictions belong in the data too. The two DeepSeek benchmarks currently in
-`data/benchmarks.json` disagree about KV per token by a factor of two and a half, and
-that disagreement is recorded rather than quietly resolved. Do the same with yours.
+Open contradictions belong in the data too. When two runs disagree, record why — or
+resolve them when the configurations are not actually comparable. The DeepSeek NVFP4-KV
+Spark figure (~27.8 KB/token) and the FP8-KV community figure (~10.6 KB/token) are kept
+on separate catalogue entries after that resolution. Do the same with yours.
 
 ## What this tool will not tell you
 

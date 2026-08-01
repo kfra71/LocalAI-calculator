@@ -110,6 +110,22 @@ export function workload(st) {
 /* ------------------------------------------------------------------ *
  *  3. Model architecture → memory footprint and read volume per token
  * ------------------------------------------------------------------ */
+// Prefer denser checkpoints when the default is unavailable on this hardware.
+// Unknown labels sort after the known ladder (stable among unknowns).
+const PRECISION_PREFERENCE = ["nvfp4", "fp8", "bf16", "fp16", "legacy"];
+const CONFIDENCE_RANK = {
+  template: 0, estimated: 1, derived: 1, "kv-derived": 1,
+  aggregator: 1, community: 2, "list-price": 2, published: 3, measured: 4,
+};
+function rankPrecision(p) {
+  const i = PRECISION_PREFERENCE.indexOf(p);
+  return i === -1 ? PRECISION_PREFERENCE.length : i;
+}
+function pickPreferredPrecision(candidates) {
+  if (!candidates.length) return undefined;
+  return [...candidates].sort((a, b) => rankPrecision(a) - rankPrecision(b))[0];
+}
+
 export function resolvePrecision(m, hwOrFp4, override) {
   // Retain the legacy boolean call shape for imported v1 scenarios and tests.
   if (typeof hwOrFp4 === "boolean") {
@@ -118,21 +134,41 @@ export function resolvePrecision(m, hwOrFp4, override) {
       compatible: true,
       precision,
       bytesPerParam: hwOrFp4 ? m.bytesPerParam : m.bytesPerParam * 2,
+      fellBack: false,
     };
   }
   const hw = hwOrFp4 || {};
   const modelPrecisions = m.supportedPrecisions || [m.defaultPrecision || "legacy"];
   const hardwarePrecisions = hw.supportedPrecisions ||
     (hw.fp4 ? ["nvfp4", "fp8", "bf16"] : ["fp8", "bf16"]);
-  const selected = override || m.defaultPrecision;
-  const compatible = selected
-    ? modelPrecisions.includes(selected) && hardwarePrecisions.includes(selected)
-    : modelPrecisions.some((p) => hardwarePrecisions.includes(p));
-  const precision = selected || modelPrecisions.find((p) => hardwarePrecisions.includes(p));
+  const mutual = modelPrecisions.filter((p) => hardwarePrecisions.includes(p));
+  // Explicit override is sticky: unsupported combinations stay incompatible.
+  if (override) {
+    const compatible = modelPrecisions.includes(override) && hardwarePrecisions.includes(override);
+    return {
+      compatible,
+      precision: override,
+      bytesPerParam: m.bytesPerParamByPrecision?.[override] ?? m.bytesPerParam,
+      fellBack: false,
+    };
+  }
+  // Default may fall back to the best mutually supported checkpoint
+  // (e.g. NVFP4 default → FP8 on Hopper). NVFP4-only models stay blocked.
+  const preferred = m.defaultPrecision;
+  const selected = (preferred && mutual.includes(preferred))
+    ? preferred
+    : pickPreferredPrecision(mutual);
+  const fellBack = Boolean(selected && preferred && selected !== preferred);
+  // A fallback precision needs an explicit bytes map — do not reuse the
+  // default checkpoint's bytesPerParam for a different format.
+  const hasMappedBytes = !fellBack || m.bytesPerParamByPrecision?.[selected] != null;
+  const compatible = Boolean(selected) && hasMappedBytes;
+  const precision = selected || preferred || modelPrecisions[0];
   return {
     compatible,
     precision,
     bytesPerParam: m.bytesPerParamByPrecision?.[precision] ?? m.bytesPerParam,
+    fellBack,
   };
 }
 
@@ -141,22 +177,84 @@ export function modelDerived(m, hwOrFp4, precisionOverride) {
   const bytesPerParam = resolved.bytesPerParam;
   const weightsGb = m.totalB * bytesPerParam;
   // Weights are read once per step, not once per token: divide by accepted tokens.
-  const gbPerToken = safeDiv(weightsGb * safeDiv(m.activeB, m.totalB), m.specTokens);
+  const gbPerToken = safeDiv(weightsGb * safeDiv(m.activeB, m.totalB), m.specTokens || 1);
   return { ...resolved, bytesPerParam, weightsGb, gbPerToken };
 }
 
 export function resolveProfile(m, hw, profiles = [], profileOverride = null) {
-  const found = profiles.find((p) =>
+  const matches = profiles.filter((p) =>
     p.modelId === m.id &&
     p.hardwareId === hw.id &&
     (!profileOverride || p.id === profileOverride)
   );
-  if (!found) return null;
+  if (!matches.length) return null;
+  // Explicit override already filtered above. Otherwise prefer stronger evidence.
+  const found = matches.reduce((best, p) =>
+    (CONFIDENCE_RANK[p.confidence] ?? -1) > (CONFIDENCE_RANK[best.confidence] ?? -1) ? p : best
+  );
   return {
     ...found,
     decode: range(found.decode),
     prefill: range(found.prefill),
   };
+}
+
+/** Context length that must be covered by a profile's testedContext. */
+export function requestedProfileContext(st) {
+  const people = st.workload?.context || 0;
+  const agents = (st.agents?.count > 0 ? st.agents.context : 0) || 0;
+  return Math.max(people, agents);
+}
+
+/**
+ * When a model has a published/measured profile on another SKU (e.g. Spark),
+ * recover aggregate÷theoretical as a production serving factor and optionally
+ * transfer it to the estimate path on larger boxes. Assumes continuous-batching
+ * runtimes (vLLM-class). Never raises a factor without a haircut; never lowers
+ * the hardware catalogue floor.
+ */
+export const SIBLING_TRANSFER_HAIRCUT_SAME = 0.85;
+export const SIBLING_TRANSFER_HAIRCUT_CROSS = 0.75;
+
+export function siblingProductionFactor(m, hw, st, profiles = []) {
+  const hardware = st.hardware || [];
+  let best = null;
+  for (const p of profiles) {
+    if (p.modelId !== m.id || p.hardwareId === hw.id) continue;
+    if (p.confidence !== "published" && p.confidence !== "measured") continue;
+    const srcHw = hardware.find((h) => h.id === p.hardwareId);
+    if (!srcHw) continue;
+    const srcDerived = modelDerived(m, srcHw, st.precisionOverride);
+    if (!srcDerived.compatible || !finitePositive(srcDerived.gbPerToken)) continue;
+    const srcTheoretical = safeDiv(srcHw.bandwidth, srcDerived.gbPerToken);
+    const decodeBase = range(p.decode).base;
+    if (!finitePositive(srcTheoretical) || !finitePositive(decodeBase)) continue;
+    const factor = decodeBase / srcTheoretical;
+    const samePrecision = srcDerived.precision === modelDerived(m, hw, st.precisionOverride).precision;
+    const ranked = CONFIDENCE_RANK[p.confidence] ?? -1;
+    if (
+      !best ||
+      ranked > best.ranked ||
+      (ranked === best.ranked && factor > best.rawFactor)
+    ) {
+      best = {
+        rawFactor: factor,
+        factor,
+        samePrecision,
+        profileId: p.id,
+        hardwareId: p.hardwareId,
+        confidence: p.confidence,
+        ranked,
+        srcTheoretical,
+        decodeBase,
+      };
+    }
+  }
+  if (!best) return null;
+  const haircut = best.samePrecision
+    ? SIBLING_TRANSFER_HAIRCUT_SAME
+    : SIBLING_TRANSFER_HAIRCUT_CROSS;
+  return { ...best, haircut, factor: best.rawFactor * haircut };
 }
 
 /* ------------------------------------------------------------------ *
@@ -168,14 +266,14 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
   const { weightsGb, gbPerToken } = derived;
   const requestedProfile = st.profileOverrides?.[hw.id] || null;
   const candidateProfile = resolveProfile(m, hw, profiles, requestedProfile);
-  const requestedContext = Math.max(st.workload.context || 0, st.agents.context || 0);
+  const requestedContext = requestedProfileContext(st);
   const profile = candidateProfile &&
     (!candidateProfile.testedContext || requestedContext <= candidateProfile.testedContext)
     ? candidateProfile
     : null;
   const warnings = [];
 
-  const overhead = m.overheadPerGpu * hw.gpus + (hw.memReserveGb ?? 0);
+  const overhead = (m.overheadPerGpu || 0) * hw.gpus + (hw.memReserveGb ?? 0);
   const freeGb = hw.memGb - weightsGb - overhead;
   const kvRange = range(m.kvKbRange, m.kvKbPerToken);
   const kvKbPerToken = sensitivity === "low"
@@ -183,11 +281,22 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     : sensitivity === "high"
       ? kvRange.low
       : kvRange.base;
-  const kvTokens = freeGb > 0 ? (freeGb * 1e6) / kvKbPerToken : 0;
+  const kvTokens = freeGb > 0 && finitePositive(kvKbPerToken)
+    ? (freeGb * 1e6) / kvKbPerToken
+    : 0;
 
   const theoretical = safeDiv(hw.bandwidth, gbPerToken);
-  const singleStream = theoretical * hw.efficiency;
-  const fallbackAggregate = singleStream * hw.batching;
+  const catalogueFactor = (hw.efficiency || 0) * (hw.batching || 1);
+  const singleStream = theoretical * (hw.efficiency || 0);
+  let productionFactor = catalogueFactor;
+  let sibling = null;
+  if (!profile) {
+    sibling = siblingProductionFactor(m, hw, st, profiles);
+    if (sibling && sibling.factor > productionFactor) {
+      productionFactor = sibling.factor;
+    }
+  }
+  const fallbackAggregate = theoretical * productionFactor;
   const aggregateRange = profile?.decode || range(fallbackAggregate);
   const prefillRange = profile?.prefill || range(hw.prefill || fallbackAggregate * (m.prefillRatio || 1));
   const aggregate = aggregateRange[sensitivity] ?? aggregateRange.base;
@@ -197,16 +306,35 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
 
   // Prefill and decode compete for the same silicon: in a given second you
   // either read context or generate. This is the throughput you can actually sell.
-  const blended = safeDiv(1, safeDiv(1, aggregate) + safeDiv(st.resale.mix, prefill));
+  const blended = safeDiv(1, safeDiv(1, aggregate) + safeDiv(st.resale?.mix || 0, prefill));
 
   const fits = derived.compatible && freeGb > 0 && finitePositive(aggregate) && finitePositive(prefill);
-  if (!derived.compatible) warnings.push("Selected checkpoint precision is unsupported on this hardware.");
+  if (!derived.compatible) {
+    warnings.push(
+      derived.fellBack
+        ? `Fell back to ${derived.precision} but bytesPerParamByPrecision has no entry for it.`
+        : "Selected checkpoint precision is unsupported on this hardware."
+    );
+  } else if (derived.fellBack) {
+    warnings.push(`Default checkpoint unavailable here; using ${derived.precision}.`);
+  }
   if (candidateProfile && !profile) {
     warnings.push(
       `Matched profile ${candidateProfile.id} was tested only to ${candidateProfile.testedContext} tokens; using an estimate for this context.`
     );
   }
-  if (!profile) warnings.push("No exact model/hardware/runtime profile; using a bandwidth estimate.");
+  if (!profile) {
+    if (sibling && productionFactor > catalogueFactor) {
+      warnings.push(
+        `No exact profile; aggregate uses production factor ${productionFactor.toFixed(2)} ` +
+        `transferred from ${sibling.profileId} on ${sibling.hardwareId} ` +
+        `(×${sibling.haircut} cross-SKU haircut${sibling.samePrecision ? "" : ", cross-precision"}). ` +
+        `Assumes continuous-batching serving (vLLM-class), not single-stream chat.`
+      );
+    } else {
+      warnings.push("No exact model/hardware/runtime profile; using a bandwidth estimate.");
+    }
+  }
   if (profile?.prefillConfidence && profile.prefillConfidence !== profile.confidence) {
     warnings.push(`Prefill evidence is ${profile.prefillConfidence}; decode evidence is ${profile.confidence}.`);
   }
@@ -245,10 +373,13 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     kv: unitsKvConservative, serving: unitsServingConservative, concurrency: unitsSeqs,
   });
 
+  const usedSiblingTransfer = Boolean(!profile && sibling && productionFactor > catalogueFactor);
   return {
     precision: derived.precision, weightsGb, overhead, freeGb, kvTokens, kvKbPerToken,
     kvRange, gbPerToken, theoretical, singleStream, aggregate, prefill, blended,
-    profileId: profile?.id ?? null, profileConfidence: profile?.confidence ?? "estimated",
+    profileId: profile?.id ?? null,
+    profileConfidence: profile?.confidence ?? (usedSiblingTransfer ? "derived" : "estimated"),
+    productionFactor, catalogueFactor, siblingTransfer: usedSiblingTransfer ? sibling : null,
     bands: { decode: aggregateRange, prefill: prefillRange, kvKbPerToken: kvRange },
     maxSeqs, targetUtilization, servingLoad,
     fits, unitsKv, unitsDecode, unitsPrefill, unitsServing, unitsSeqs,
@@ -544,11 +675,6 @@ export function validateState(st) {
   }
   return { valid: errors.length === 0, errors, warnings };
 }
-
-const CONFIDENCE_RANK = {
-  template: 0, estimated: 1, derived: 1, "kv-derived": 1,
-  aggregator: 1, community: 2, "list-price": 2, published: 3, measured: 4,
-};
 
 function regionTokens(value) {
   return String(value || "")

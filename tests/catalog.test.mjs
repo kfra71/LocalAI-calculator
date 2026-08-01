@@ -60,9 +60,26 @@ check("profile references resolve",
     models.some((m) => m.id === p.modelId) &&
     hardware.some((h) => h.id === p.hardwareId) &&
     benchmarks.some((b) => b.id === p.sourceBenchmark)));
-check("unresolved DeepSeek KV is bracketed",
-  models[0].kvKbRange.status === "unresolved" &&
-  models[0].kvKbRange.low < models[0].kvKbRange.high);
+check("models[0] product default is Qwen3.6 35B-A3B", models[0].id === "qwen3.6-35b-a3b");
+const deepseekNvfp4 = models.find((m) => m.id === "deepseek-v4-flash-0731");
+check("DeepSeek NVFP4 KV contradiction is resolved",
+  deepseekNvfp4?.kvKbRange?.status === "resolved" &&
+  deepseekNvfp4.kvKbPerToken === 27.77 &&
+  deepseekNvfp4.kvKbRange.low === deepseekNvfp4.kvKbRange.high);
+check("DeepSeek FP8 KV stays on its own entry",
+  models.find((m) => m.id === "deepseek-v4-flash-0731-fp8")?.kvKbPerToken === 10.6);
+check("yardstick and flagship models are present",
+  models.some((m) => m.id === "qwen3.6-35b-a3b") &&
+  models.some((m) => m.id === "gpt-oss-120b") &&
+  models.some((m) => m.id === "qwen3.5-397b-a17b"));
+check("b300-4x multi-GPU SKU exists", hardware.some((h) => h.id === "b300-4x" && h.gpus === 4));
+check("model profileIds resolve",
+  models.every((m) => (m.profileIds || []).every((id) => profiles.some((p) => p.id === id))));
+check("hardware profileIds resolve",
+  hardware.every((h) => (h.profileIds || []).every((id) => profiles.some((p) => p.id === id))));
+check("yardstick profiles cover appliance and datacenter SKUs",
+  ["qwen36-spark-nvfp4", "qwen36-rtxpro2-nvfp4", "gptoss-b300-fp4", "gptoss-station-fp4", "gptoss-h200-fp8", "qwen35-b300-4x-nvfp4"]
+    .every((id) => profiles.some((p) => p.id === id)));
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

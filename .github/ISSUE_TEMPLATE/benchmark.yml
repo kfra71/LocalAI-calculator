@@ -1,5 +1,5 @@
 name: Benchmark / measured run
-description: Contribute a measured serving run for the historical record.
+description: Contribute a measured serving run for the historical record — especially first-party soaks.
 title: "[benchmark] "
 labels: ["benchmark", "help wanted"]
 body:
@@ -9,42 +9,58 @@ body:
         Benchmarks live in `data/benchmarks.json`. They do **not** feed the calculator directly — reviewed values move into `models.json`, `hardware.json`, or a matched `profiles.json` entry.
 
         **A number without its configuration cannot be reproduced.**
+
+        Prefer **first-party measured** runs (you operated the box, pinned the build, kept the counters). Published recipes and community reports are welcome too — pick the right confidence below.
+  - type: dropdown
+    id: provenance
+    attributes:
+      label: Provenance
+      description: Who ran this, and can we re-verify it?
+      options:
+        - First-party measured (I/we ran it on hardware we control)
+        - Published recipe (public, reproducible by others)
+        - Community report (unverified third party)
+    validations:
+      required: true
   - type: input
     id: model
     attributes:
       label: Model
       description: Exact checkpoint / release, including precision.
-      placeholder: DeepSeek V4 Flash 0731 NVFP4
+      placeholder: Qwen3.6 35B-A3B NVFP4
     validations:
       required: true
   - type: input
     id: hardware
     attributes:
       label: Hardware
-      description: Exact machine topology.
-      placeholder: 2x DGX Spark, TP=2
+      description: Exact machine topology (catalogue id if known).
+      placeholder: spark-2x — 2x DGX Spark, TP=2
     validations:
       required: true
   - type: input
     id: runtime
     attributes:
       label: Runtime / engine build
-      description: Pinned commit or version — not “latest”.
-      placeholder: vLLM abc1234 + FlashInfer 0.x
+      description: Pinned commit, container digest, or version — not “latest”.
+      placeholder: vLLM 0.25.0 (sha abc1234) + FlashInfer 0.x
     validations:
       required: true
   - type: textarea
     id: flags
     attributes:
       label: Full flag set / config
-      description: Everything needed to reproduce the run.
+      description: Everything needed to reproduce the run (serve command, YAML, env vars).
     validations:
       required: true
   - type: textarea
     id: metrics
     attributes:
       label: Metrics
-      description: Decode tok/s, prefill tok/s, concurrency, KV pool, context, util, etc.
+      description: |
+        Include at least: single-stream and aggregate decode tok/s, prefill tok/s (or say unknown),
+        concurrency, max_model_len / tested context, KV pool tokens + free memory, GPU util.
+        For first-party runs, attach or paste soak windows (e.g. 10–40 minutes) if you have them.
     validations:
       required: true
   - type: dropdown
@@ -58,6 +74,22 @@ body:
         - Other (explain in notes)
     validations:
       required: true
+  - type: input
+    id: soak
+    attributes:
+      label: Soak / duration
+      description: First-party preferred. e.g. “40 min, 553 requests, zero errors”.
+      placeholder: 10 min mixed C12/C32/C64, 0 failures
+  - type: checkboxes
+    id: first_party_checks
+    attributes:
+      label: First-party checklist (required if provenance is first-party)
+      options:
+        - label: Build / container is pinned (commit, tag, or digest)
+        - label: Exact flags or config file included above
+        - label: Concurrency and context length stated
+        - label: Failure modes documented (even if “none observed”)
+        - label: Willing to help map values into profiles.json after review
   - type: textarea
     id: failures
     attributes:
@@ -81,9 +113,9 @@ body:
     id: sources
     attributes:
       label: Sources / links
-      description: Public recipe, gist, PR, or archive of the run.
+      description: Public recipe, gist, PR, logs archive, or (for first-party) a paste bin of the soak summary.
   - type: textarea
     id: notes
     attributes:
       label: Notes / open contradictions
-      description: If this disagrees with an existing entry, say so plainly.
+      description: If this disagrees with an existing entry, say so plainly — or explain why the configurations are not comparable.
