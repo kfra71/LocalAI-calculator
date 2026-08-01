@@ -1,0 +1,44 @@
+{
+  "$schema": "./schema/profile.schema.json",
+  "note": "Exact model, hardware and runtime observations. The engine uses a matched profile before falling back to bandwidth estimates.",
+  "profiles": [
+    {
+      "id": "deepseek-spark-published",
+      "modelId": "deepseek-v4-flash-0731",
+      "hardwareId": "spark-2x",
+      "runtime": "vLLM + DSpark, TP=2, Patch 4",
+      "decode": { "low": 58.0, "base": 88.6, "high": 151.1 },
+      "prefill": { "low": 1513, "base": 2639, "high": 2639 },
+      "maxSeqs": 6,
+      "testedContext": 1048576,
+      "confidence": "published",
+      "sourceBenchmark": "deepseek-spark-2026-07"
+    },
+    {
+      "id": "laguna-station-measured",
+      "modelId": "laguna-s-2-1",
+      "hardwareId": "station-gb300",
+      "runtime": "vLLM dd72658e + FlashInfer 0.6.15.post1, TP=1",
+      "decode": { "low": 571.43, "base": 611.69, "high": 651.94 },
+      "prefill": { "low": 43026, "base": 43026, "high": 56802 },
+      "maxSeqs": 10,
+      "testedContext": 262144,
+      "confidence": "measured",
+      "sourceBenchmark": "laguna-station-2026-07"
+    },
+    {
+      "id": "deepseek-rtxpro-community",
+      "modelId": "deepseek-v4-flash-0731-fp8",
+      "hardwareId": "rtxpro-2x",
+      "runtime": "community vLLM build, TP=2",
+      "decode": { "low": 299, "base": 403, "high": 403 },
+      "prefill": { "low": 6000, "base": 12000, "high": 12000 },
+      "prefillConfidence": "estimated",
+      "prefillSource": "Hardware catalogue estimate; the linked community benchmark did not report prefill.",
+      "maxSeqs": 4,
+      "testedContext": 524288,
+      "confidence": "community",
+      "sourceBenchmark": "deepseek-rtxpro-2026-07"
+    }
+  ]
+}

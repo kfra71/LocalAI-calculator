@@ -1,0 +1,158 @@
+{
+  "$schema": "./schema/defaults.schema.json",
+  "note": "Starting values. Everything here is editable in the UI; this file only sets where you begin.",
+
+  "org": { "devs": 20, "marketing": 10, "admin": 20, "workDays": 220, "workHours": 8 },
+
+  "staff": {
+    "ral": 60000,
+    "employerCoef": 1.42,
+    "hoursYear": 1720,
+    "freelanceRate": 75,
+    "freelanceShare": 0.30
+  },
+
+  "mgmt": {
+    "platformQuota": 0.15,
+    "applianceQuota": 0.035,
+    "nodeQuota": 0.12,
+    "perUnitQuota": 0.010,
+    "automation": 0.40,
+    "wearMultiplier": 1.60
+  },
+
+  "econ": {
+    "kwhPrice": 0.33,
+    "hoursYear": 8760,
+    "utilization": 0.35,
+    "years": 4,
+    "fx": 0.92,
+    "onPremPremium": 0.20
+  },
+
+  "workload": {
+    "devIn": 12000000, "devOut": 700000,
+    "adminIn": 250000, "adminOut": 60000,
+    "mktIn": 150000, "mktOut": 50000,
+    "caching": 0.70,
+    "sharedPrefixTokens": 0,
+    "prefixSharing": false,
+    "context": 100000,
+    "burstiness": 11.8,
+    "devConcurrency": 0.60,
+    "adminConcurrency": 0.15,
+    "marketingConcurrency": 0.15,
+    "peakManual": 0,
+    "images": 40000,
+    "videoSeconds": 20000
+  },
+
+  "agents": {
+    "count": 0,
+    "hoursDay": 24,
+    "daysYear": 365,
+    "inPerHour": 400000,
+    "outPerHour": 25000,
+    "caching": 0.90,
+    "sharedPrefixTokens": 0,
+    "prefixSharing": false,
+    "context": 180000,
+    "peakFactor": 1.10
+  },
+
+  "rental": { "reserveDiscount": 0.40, "upfrontShare": 0.30 },
+
+  "resilience": {
+    "targetUtilization": 0.85,
+    "maintenanceReserve": 0,
+    "nPlusOne": false
+  },
+
+  "requirements": {
+    "sovereignOnly": true,
+    "regions": ["EU"],
+    "requireEquivalentCapability": false,
+    "minimumConfidence": "estimated"
+  },
+
+  "media": {
+    "scope": "excluded",
+    "ownedAnnualCost": 0
+  },
+
+  "subs": {
+    "devPlan": 100.00,
+    "casualPlan": 14.00,
+    "overage": 0.20,
+    "devIncludedTokensYear": 2500000000,
+    "casualIncludedTokensYear": 100000000,
+    "apiIn": 1.50,
+    "apiCached": 0.15,
+    "apiStorage": 1.00,
+    "apiOut": 7.50,
+    "imagePrice": 0.134,
+    "videoPrice": 0.05
+  },
+
+  "resale": {
+    "enabled": false,
+    "freeHoursShare": 0.72,
+    "sellThrough": 0.40,
+    "priceIn": 0.25,
+    "priceOut": 0.50,
+    "mix": 15.4,
+    "opsQuota": 0.25
+  },
+
+  "costs": {
+    "networkAnnual": 0,
+    "storageAnnual": 0,
+    "softwareAnnual": 0,
+    "financingRate": 0,
+    "residualShare": 0,
+    "replacementReserveAnnual": 0,
+    "energyMode": "derived",
+    "modelLifeYears": 4
+  },
+
+  "uncertainty": {
+    "peakPct": 0.20,
+    "managementPct": 0.25,
+    "pricePct": 0.15,
+    "modelLifeLow": 3,
+    "modelLifeHigh": 5
+  },
+
+  "subscriptionRefs": [
+    { "label": "Anthropic Claude, developer plan", "price": 100, "unit": "$/seat/month", "note": "Tier aimed at intensive agentic coding" },
+    { "label": "Gemini Enterprise Business", "price": 21, "unit": "$/seat/month", "note": "Standard 30, Plus 50" },
+    { "label": "Microsoft 365 Copilot", "price": 30, "unit": "$/seat/month", "note": "" },
+    { "label": "Workspace Business Standard", "price": 14, "unit": "$/seat/month", "note": "Gemini included, for occasional users" },
+    { "label": "Gemini 3.6 Flash API", "price": 1.50, "unit": "$/1M in", "note": "7.50 out, 0.15 cached, 1.00/1M/hour cache storage" },
+    { "label": "Nano Banana Pro image", "price": 0.134, "unit": "$/image", "note": "1K-2K; 0.24 at 4K" },
+    { "label": "Veo 3.1 Lite video", "price": 0.05, "unit": "$/second", "note": "720p; Fast 0.10, Standard 0.40" }
+  ],
+
+  "sectors": [
+    { "id": 1, "name": "Defence, space, aerospace supply chain", "driver": 40, "typicalSize": "100-500",
+      "note": "Explicitly inside national cyber-security perimeters in several EU states. Contractual clauses that forbid data leaving the perimeter. Target the subcontractors, not the prime contractors." },
+    { "id": 2, "name": "Precision mechanics, automation, packaging", "driver": 25, "typicalSize": "150-600",
+      "note": "The moat is entirely process know-how and unpublished CAD. Most underserved segment." },
+    { "id": 3, "name": "Pharma and biotech R&D", "driver": 30, "typicalSize": "200-800",
+      "note": "Pre-patent compounds and clinical data. Long sales cycles, solid budgets." },
+    { "id": 4, "name": "Legal and industrial property", "driver": 35, "typicalSize": "20-80",
+      "note": "Strongest driver of all - disclosure before filing destroys novelty - but almost always below the size floor. Works as a consortium or managed multi-tenant service." },
+    { "id": 5, "name": "Energy and utilities", "driver": 35, "typicalSize": "200-2000",
+      "note": "Often too large; tends toward framework agreements with sovereign clouds." },
+    { "id": 6, "name": "Banking and insurance", "driver": 30, "typicalSize": "500+",
+      "note": "Strong driver, size usually beyond the band. Exception: cooperative banks and niche asset managers." },
+    { "id": 7, "name": "Private healthcare and diagnostics", "driver": 30, "typicalSize": "200-800",
+      "note": "Health data. Avoid public sector: slow procurement, unpredictable budgets." },
+    { "id": 8, "name": "B2B software and SaaS", "driver": 15, "typicalSize": "50-400",
+      "note": "Weak driver unless their enterprise customers impose clauses. They can do the maths and will pick cloud." },
+    { "id": 9, "name": "Professional services", "driver": 10, "typicalSize": "100-500",
+      "note": "Driver almost absent except on critical-infrastructure contracts." },
+    { "id": 10, "name": "Other / commodity", "driver": 0, "typicalSize": "-",
+      "note": "No governance driver. The comparison is purely economic and cloud wins." }
+  ]
+}

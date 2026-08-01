@@ -1,0 +1,78 @@
+{
+  "$schema": "./schema/benchmarks.schema.json",
+  "note": "Historical record. Nothing here feeds the calculation directly - values are transcribed into models.json and hardware.json only after review. Confidence levels: measured (first-party run with pinned build), published (public reproducible recipe), community (unverified report).",
+  "benchmarks": [
+    {
+      "id": "laguna-station-2026-07",
+      "date": "2026-07",
+      "confidence": "measured",
+      "model": "Laguna S 2.1 NVFP4",
+      "hardware": "1x DGX Station GB300",
+      "config": "vLLM main dd72658e / FlashInfer 0.6.15.post1 / TP1 / FP8 KV / NVFP4 weights / no DFlash / 262,144 tokens per agent / 10 concurrent",
+      "metrics": [
+        { "label": "Single-stream decode (p50)", "value": "59.59 tok/s", "note": "32K output profile" },
+        { "label": "Aggregate decode", "value": "571.43 tok/s", "note": "32K output, 10 agents" },
+        { "label": "Aggregate decode", "value": "651.94 tok/s", "note": "128K output, 10 agents" },
+        { "label": "Aggregate prefill", "value": "43,026 tok/s", "note": "32K profile; 56,802 at 128K" },
+        { "label": "TTFT p50", "value": "30.07 s", "note": "229K prompt" },
+        { "label": "Resident KV", "value": "2,767,665 tokens", "note": "10.56 full windows, HBM only" },
+        { "label": "Peak HBM", "value": "248,611 MiB", "note": "242.8 GiB of 252 GB - saturated, zero spill" }
+      ],
+      "qualification": "10/10 exact requests, 10 output hashes verified, zero failures, zero preemptions, zero swap, unique prompts, forced output, no CPU/KV/UVA offload.",
+      "caveats": [
+        "Benchmark conditions, not realistic mixed traffic. Unique prompts mean zero prefix reuse - the worst case for KV, but the best case for throughput consistency.",
+        "No realistic-traffic soak exists for this configuration, so it is not directly comparable to the DeepSeek numbers below."
+      ]
+    },
+    {
+      "id": "deepseek-spark-2026-07",
+      "date": "2026-07-31",
+      "confidence": "published",
+      "model": "DeepSeek V4 Flash 0731 NVFP4",
+      "hardware": "2x DGX Spark, TP=2",
+      "config": "vLLM + DSpark speculative decoding k=5 / kv_cache_dtype=nvfp4_ds_mla / max_model_len 1,048,576 / max_num_seqs 6 / gpu_memory_utilization 0.78 / Patch 4 applied",
+      "metrics": [
+        { "label": "Single-stream decode (mean)", "value": "55.4 tok/s", "note": "peak 66.1; without Patch 4 it halves to 32.7" },
+        { "label": "Aggregate, synthetic bench", "value": "151.1 tok/s", "note": "concurrency 4" },
+        { "label": "Aggregate, realistic traffic", "value": "88.6 tok/s", "note": "concurrency 4 - the recipe says plan with this, not 151" },
+        { "label": "Per-stream, realistic traffic", "value": "22.3 tok/s", "note": "benchmark-to-real factor is 0.59" },
+        { "label": "Draft acceptance", "value": "60.2%", "note": "25.7% without Patch 4; 56.1% on real agent traffic" },
+        { "label": "Prefill at 100K depth", "value": "2,639 tok/s", "note": "1,513 at 8K, 2,284 at 32K" },
+        { "label": "KV pool", "value": "1,548,597 tokens", "note": "swings 11% between boots" }
+      ],
+      "qualification": "40-minute soak: 553 requests, 212,974 tokens generated, zero empty completions, zero degenerate output, zero errors, no container restarts. Per-stream held 22.1-22.3 across all eight 5-minute windows.",
+      "caveats": [
+        "Patch 4 is mandatory: without it throughput halves at unchanged output quality, which sends you looking in the wrong place. Root cause is a drafter loader silently dropping twelve shared-expert tensors.",
+        "30% cold penalty after boot and after any idle period - first requests run at ~58 instead of ~83 tok/s, and it is not visible in the boot log.",
+        "With stream=true you measure steps per second, not tokens per second: 14.7 vs 60.1 on the same request. Read usage.completion_tokens."
+      ],
+      "sources": ["https://github.com/tonyd2wild/DeepSeek-v4-Flash-0731-DSpark-1M-NVFP4-KV-2x-DGX-Spark"]
+    },
+    {
+      "id": "deepseek-rtxpro-2026-07",
+      "date": "2026-07",
+      "confidence": "community",
+      "model": "DeepSeek V4 Flash DSpark, official FP8 (~167 GB)",
+      "hardware": "2x RTX PRO 6000 Blackwell, TP=2",
+      "config": "Community vLLM build (upstream fails to load the 0731 release: new MTP norm layout) / dspark k=5 / kv-cache-dtype fp8 / gpu-memory-utilization 0.94 / max-model-len 524,288",
+      "metrics": [
+        { "label": "Single-stream decode (median)", "value": "243 tok/s", "note": "3.1x over the no-spec baseline of ~78" },
+        { "label": "Aggregate at concurrency 2", "value": "299 tok/s", "note": "" },
+        { "label": "Aggregate at concurrency 4", "value": "403 tok/s", "note": "batching factor 1.66x" },
+        { "label": "Draft acceptance", "value": "74-76%", "note": "zero failures" },
+        { "label": "Model weights", "value": "167 GB", "note": "fits 192 GB without requantisation" },
+        { "label": "KV pool", "value": "~988,000 tokens", "note": "at util 0.94" },
+        { "label": "Stability soak", "value": "237-245 tok/s", "note": "3 hours mixed load" }
+      ],
+      "qualification": "Unverified community report on a non-official build.",
+      "caveats": [
+        "max_num_seqs > 4 fails deterministically on the first request. Root cause is a hardcoded prefill chunk size feeding an empty padding slice into the sparse MLA kernel. This is an implementation defect, not an architectural limit - a production build should not carry it.",
+        "Upstream vLLM does not load this release at all, so the build under test is not what you would run in production.",
+        "confidence_head is fully wired in this build but defaults to a threshold of 0, i.e. present and unused.",
+        "OPEN INCONSISTENCY: the KV per token implied here (~10.6 KB with FP8 KV) contradicts the DGX Spark recipe (~27 KB with NVFP4 KV). NVFP4 should be more compact, not double.",
+        "OPEN INCONSISTENCY: 167 GB across 284 billion declared parameters is 0.588 bytes per parameter, so not pure FP8. Either the checkpoint is mixed, or the 284B figure does not describe this variant."
+      ],
+      "highlight": "The most interesting result is a non-result: the author expected an SM120 kernel wall and never hit one. Measured efficiency is around 28.5% against the 6% this tool assumes conservatively for that column."
+    }
+  ]
+}

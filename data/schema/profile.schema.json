@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth benchmark profiles",
+  "type": "object",
+  "required": ["profiles"],
+  "properties": {
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "modelId", "hardwareId", "decode", "prefill", "confidence"],
+        "properties": {
+          "decode": { "$ref": "#/$defs/range" },
+          "prefill": { "$ref": "#/$defs/range" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "prefillConfidence": { "$ref": "#/$defs/confidence" },
+          "prefillSource": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "confidence": {
+      "enum": ["measured", "published", "community", "list-price", "aggregator", "estimated", "template", "derived", "kv-derived"]
+    },
+    "range": {
+      "type": "object",
+      "required": ["low", "base", "high"],
+      "properties": {
+        "low": { "type": "number", "exclusiveMinimum": 0 },
+        "base": { "type": "number", "exclusiveMinimum": 0 },
+        "high": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  }
+}

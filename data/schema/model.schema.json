@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth model catalogue",
+  "type": "object",
+  "required": ["models"],
+  "properties": {
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "totalB", "activeB", "bytesPerParam", "kvKbPerToken", "maxContext", "confidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "confidence": { "enum": ["measured", "published", "community", "list-price", "aggregator", "estimated", "template", "derived", "kv-derived"] }
+        }
+      }
+    }
+  }
+}

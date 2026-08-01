@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth benchmark archive",
+  "type": "object",
+  "required": ["benchmarks"],
+  "properties": {
+    "benchmarks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "date", "confidence", "model", "hardware", "config", "metrics"]
+      }
+    }
+  }
+}

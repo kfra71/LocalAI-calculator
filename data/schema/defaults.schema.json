@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth scenario defaults",
+  "type": "object",
+  "required": ["org", "staff", "mgmt", "econ", "workload", "agents", "resilience", "requirements", "media", "costs", "uncertainty"]
+}

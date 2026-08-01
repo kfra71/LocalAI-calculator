@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bindwidth hardware catalogue",
+  "type": "object",
+  "required": ["hardware"],
+  "properties": {
+    "hardware": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "label", "memGb", "bandwidth", "supportedPrecisions", "confidence"],
+        "properties": {
+          "kind": { "enum": ["own", "rent"] },
+          "supportedPrecisions": { "type": "array", "minItems": 1 },
+          "sovereign": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
