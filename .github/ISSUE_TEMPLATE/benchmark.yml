@@ -1,0 +1,89 @@
+name: Benchmark / measured run
+description: Contribute a measured serving run for the historical record.
+title: "[benchmark] "
+labels: ["benchmark", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Benchmarks live in `data/benchmarks.json`. They do **not** feed the calculator directly — reviewed values move into `models.json`, `hardware.json`, or a matched `profiles.json` entry.
+
+        **A number without its configuration cannot be reproduced.**
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Exact checkpoint / release, including precision.
+      placeholder: DeepSeek V4 Flash 0731 NVFP4
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      description: Exact machine topology.
+      placeholder: 2x DGX Spark, TP=2
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime / engine build
+      description: Pinned commit or version — not “latest”.
+      placeholder: vLLM abc1234 + FlashInfer 0.x
+    validations:
+      required: true
+  - type: textarea
+    id: flags
+    attributes:
+      label: Full flag set / config
+      description: Everything needed to reproduce the run.
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics
+      description: Decode tok/s, prefill tok/s, concurrency, KV pool, context, util, etc.
+    validations:
+      required: true
+  - type: dropdown
+    id: traffic
+    attributes:
+      label: Traffic shape
+      options:
+        - Synthetic / synthetic shareGPT-style
+        - Realistic mixed interactive
+        - Batch / offline
+        - Other (explain in notes)
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failure modes
+      description: What broke, OOM’d, stalled, or degraded. Happy-path-only runs are less useful.
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: Proposed confidence
+      options:
+        - measured
+        - published
+        - community
+        - estimated
+        - derived
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources / links
+      description: Public recipe, gist, PR, or archive of the run.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / open contradictions
+      description: If this disagrees with an existing entry, say so plainly.

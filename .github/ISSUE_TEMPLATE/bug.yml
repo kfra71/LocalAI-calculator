@@ -1,0 +1,49 @@
+name: Bug or modelling error
+description: Something the calculator computes incorrectly, or a clear UI defect.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Modelling errors matter more than data typos — a wrong formula still returns a number and looks fine until someone checks.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Sizing / binding constraint
+        - Workload / peaks / agents
+        - Cost / TCO
+        - Eligibility / comparables
+        - Guided setup / scenarios
+        - Import / export
+        - UI / accessibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Inputs
+      description: Scenario summary, exported JSON, or the exact field values that reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What Bindwidth produced
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you believe it should produce
+      description: Include the arithmetic or reference if you have it.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / OS (for UI bugs)
+      placeholder: Firefox 128 / Ubuntu 24.04

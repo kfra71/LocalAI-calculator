@@ -93,8 +93,8 @@ them without touching code.
 ```bash
 node tests/engine.test.mjs
 node tests/migration.test.mjs
-node tests/catalog.test.mjs
 node tests/claims.test.mjs
+node tests/scenarios.test.mjs
 ```
 
 The engine is pure functions with no DOM and no dependencies. The tests pin the
@@ -112,9 +112,10 @@ data/models.json      model architecture profiles
 data/hardware.json    hardware and rental catalogue
 data/profiles.json    exact model×hardware×runtime observations
 data/defaults.json    starting values, subscription references, sector table
+data/scenarios.json   guided-setup presets (org + workload + agents)
 data/benchmarks.json  historical record of measured runs
 data/schema/          catalogue and saved-scenario schemas
-tests/                engine checks
+tests/                engine and scenario checks
 ```
 
 The split is deliberate. **Adding a model, a machine or a benchmark means editing
@@ -166,7 +167,13 @@ media cost/profile is supplied.
 
 ## Contributing
 
-Measured runs are worth more than opinions. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Measured runs are worth more than opinions. See [CONTRIBUTING.md](CONTRIBUTING.md)
+and the in-app [contribute page](https://juxhinr.github.io/bindwidth/contribute.html).
+
+**Easy ways in:**
+- Open a [catalogue](https://github.com/juxhinr/bindwidth/issues/new?template=catalogue.yml) or [benchmark](https://github.com/juxhinr/bindwidth/issues/new?template=benchmark.yml) issue
+- Pick something labelled [`good first issue`](https://github.com/juxhinr/bindwidth/labels/good%20first%20issue)
+- Edit one JSON file under `data/` and open a pull request
 
 The short version: **a number without its configuration cannot be reproduced.** If you
 submit a benchmark, include the pinned engine build, the exact flags, the concurrency,
