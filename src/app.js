@@ -275,7 +275,10 @@ function Wizard({ st, set, r, catalog, scenarios = [], selectedPresetId, onSelec
                 n=${r.premiumActual !== null ? pct(r.premiumActual) + " over the alternative" : ""} />
               <${Readout} k="Conservative binding" v=${best?.sizing.recommendationBinding || best?.sizing.binding || "—"} tone="warn"
                 n=${`base ${best?.sizing.binding ?? "—"} · ${nf(best?.sizing.recommendedUnits)} units`} />
-              <${Readout} k="Peak decode" v=${nf(r.workload.decodePeak) + " tok/s"} tone="hi" />
+              <${Readout} k="Aggregate decode" v=${best?.sizing?.fits ? nf(best.sizing.aggregate) + " tok/s" : "—"} tone="hi"
+                n=${best?.sizing?.fits
+                  ? `per unit · ${best.cost.qty}× = ${nf(best.cost.qty * best.sizing.aggregate)} tok/s fleet`
+                  : "no fitting owned option"} />
             </div>
             ${best?.sizing && html`
               <div class="wizard-ladder">
@@ -1167,7 +1170,7 @@ function ExportView({ st, r, onImport, onExport, onMarkdown, onReset, onQuote })
           <dt>Headcount</dt><dd>${nf(r.headcount)}</dd>
           <dt>Autonomous agents</dt><dd>${nf(st.agents.count)}</dd>
           <dt>Tokens per year</dt><dd>${nf(r.workload.totalTokens / 1e9, 1)} B</dd>
-          <dt>Peak decode</dt><dd>${nf(r.workload.decodePeak)} tok/s</dd>
+          <dt>Aggregate decode</dt><dd>${r.bestOwn?.sizing?.fits ? nf(r.bestOwn.sizing.aggregate) + " tok/s per unit" : "—"}</dd>
           <dt>Cheapest owned</dt><dd>${r.bestOwn ? r.bestOwn.hw.label + " — " + eur(r.bestOwn.cost.total) : "—"}</dd>
           <dt>Cheapest eligible alternative</dt><dd>${r.bestAlt ? r.bestAlt.hw.label + " — " + eur(r.bestAlt.cost.total) : "—"}</dd>
           <dt>Ownership premium</dt><dd>${eur(r.delta)}</dd>
@@ -1396,7 +1399,7 @@ function App({ catalog }) {
         <div class="cell"><span class="k">Conservative bind</span>
           <span class="v">${r.bestOwn?.sizing.recommendationBinding || r.bestOwn?.sizing.binding || "—"}</span></div>
         <div class="spacer"></div>
-        <div class="cell"><span class="k">Peak decode</span><span class="v">${nf(r.workload.decodePeak)} <span style=${{ fontSize: 11, color: "#8d93a0" }}>tok/s</span></span></div>
+        <div class="cell"><span class="k">Aggregate decode</span><span class="v">${r.bestOwn?.sizing?.fits ? nf(r.bestOwn.sizing.aggregate) : "—"} <span style=${{ fontSize: 11, color: "#8d93a0" }}>tok/s</span></span></div>
         <button class="btn sm primary" type="button" onClick=${() => handleQuote(r.bestOwn || null)}
           disabled=${!canQuote()}>
           Request quote
