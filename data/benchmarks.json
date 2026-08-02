@@ -26,27 +26,26 @@
     },
     {
       "id": "deepseek-spark-2026-07",
-      "date": "2026-07-31",
+      "date": "2026-08-02",
       "confidence": "published",
       "model": "DeepSeek V4 Flash 0731 NVFP4",
       "hardware": "2x DGX Spark, TP=2",
-      "config": "vLLM + DSpark speculative decoding k=5 / kv_cache_dtype=nvfp4_ds_mla / max_model_len 1,048,576 / max_num_seqs 6 / gpu_memory_utilization 0.78 / Patch 4 applied",
+      "config": "vLLM + DSpark (Anemll dspark-vllm-gx10:0.1.1) / kv_cache_dtype=nvfp4_ds_mla / max_model_len 1,048,576 / max_num_seqs 4–6 / MTP_NUM_TOKENS 5–6 / gpu_memory_utilization ≈0.80–0.835",
       "metrics": [
-        { "label": "Single-stream decode (mean)", "value": "55.4 tok/s", "note": "peak 66.1; without Patch 4 it halves to 32.7" },
-        { "label": "Aggregate, synthetic bench", "value": "151.1 tok/s", "note": "concurrency 4" },
-        { "label": "Aggregate, realistic traffic", "value": "88.6 tok/s", "note": "concurrency 4 - the recipe says plan with this, not 151" },
-        { "label": "Per-stream, realistic traffic", "value": "22.3 tok/s", "note": "benchmark-to-real factor is 0.59" },
-        { "label": "Draft acceptance", "value": "60.2%", "note": "25.7% without Patch 4; 56.1% on real agent traffic" },
-        { "label": "Prefill at 100K depth", "value": "2,639 tok/s", "note": "1,513 at 8K, 2,284 at 32K" },
-        { "label": "KV pool", "value": "1,548,597 tokens", "note": "swings 11% between boots" }
+        { "label": "Single-stream decode", "value": "82.4 tok/s", "note": "official decode bench, concurrency 1, 2048 completion tokens" },
+        { "label": "Aggregate at concurrency 4", "value": "120.4 tok/s", "note": "plan with this for 4 concurrent users/agents; TTFT rises to 5.36 s at x4" },
+        { "label": "Per-stream at concurrency 4", "value": "33.6 tok/s", "note": "what each concurrent session feels like at x4" },
+        { "label": "Peak aggregate", "value": "134.6 tok/s", "note": "concurrency 3 in the same official decode capture" },
+        { "label": "Prefill at 100K depth", "value": "2,639 tok/s", "note": "1,513 at 8K, 2,284 at 32K (prior recipe sweep)" },
+        { "label": "KV pool", "value": "2,493,464 tokens", "note": "live boot at util ≈0.835, ~18.08 GiB KV; ~2.38× concurrency at 1M context" }
       ],
-      "qualification": "40-minute soak: 553 requests, 212,974 tokens generated, zero empty completions, zero degenerate output, zero errors, no container restarts. Per-stream held 22.1-22.3 across all eight 5-minute windows.",
+      "qualification": "Official OpenAI-compatible decode benchmark on the 2× Spark cluster (2048 completion tokens, concurrency 1–6). Published x1–x4 rows: 82.4 / 98.0 / 134.6 / 120.4 tok/s aggregate.",
       "caveats": [
-        "Patch 4 is mandatory: without it throughput halves at unchanged output quality, which sends you looking in the wrong place. Root cause is a drafter loader silently dropping twelve shared-expert tensors.",
-        "30% cold penalty after boot and after any idle period - first requests run at ~58 instead of ~83 tok/s, and it is not visible in the boot log.",
-        "With stream=true you measure steps per second, not tokens per second: 14.7 vs 60.1 on the same request. Read usage.completion_tokens."
+        "At concurrency 4, TTFT jumps to ~5.36 s while aggregate falls from the x3 peak (134.6) to 120.4 tok/s — plan capacity on aggregate, UX on per-stream (~33.6).",
+        "With stream=true some clients report steps/s rather than tok/s; read usage.completion_tokens for true decode throughput.",
+        "Prefill at deep context remains the bottleneck for long agent sessions; the 900K validation TTFT is on the order of ~1000 s."
       ],
-      "sources": ["https://github.com/tonyd2wild/DeepSeek-v4-Flash-0731-DSpark-1M-NVFP4-KV-2x-DGX-Spark"]
+      "sources": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark"]
     },
     {
       "id": "deepseek-rtxpro-2026-07",

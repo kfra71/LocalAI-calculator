@@ -363,7 +363,12 @@ function TeamView({ st, set }) {
         <//>
       </div>
 
-      <${Panel} title="Cost of an hour of technical time" hint="drives most of the TCO">
+      <${Panel} title="Cost of an hour of technical time"
+        hint="only multiplies into TCO once a management quota is above zero">
+        <p class="lede" style=${{ marginBottom: 12 }}>
+          Blended hourly rate for the FTE quotas below. With all quotas at zero (the default), this rate does not
+          add management euros — raise a quota when you want to model real ops staff.
+        </p>
         <div class="grid two">
           <div>
             <${Field} label="Gross annual salary" sub="MLOps or SRE profile, before employer contributions" unit="€/yr"
@@ -382,27 +387,33 @@ function TeamView({ st, set }) {
         </div>
       <//>
 
-      <${Panel} title="How much of a person the metal actually needs"
-        hint="the single most under-estimated line in any on-prem business case">
+      <${Panel} title="Human management cost"
+        hint="defaults to zero — opt in when you want ops staff in the TCO">
         <p class="lede" style=${{ marginBottom: 12 }}>
-          Platform work — gateway, routing, key management, FinOps, evaluations when a model is deprecated — exists
-          whether you own the hardware or rent it. <strong>Infrastructure work sits on top, and only when you run
-          the metal.</strong> Rental management effort is scenario-specific; the default assumes the same serving
-          software remains your responsibility and should be replaced with measured staffing.
+          Management euros = FTE quotas × blended technical hourly × years (+ one-time setup hours on owned gear).
+          Quotas start at <strong>0</strong> so every configuration’s Management column is hardware/energy/service
+          only until you model people. Platform work applies everywhere; infrastructure quotas apply only when you
+          run metal (own or rent), never on pure subscription seats.
         </p>
         <div class="grid two">
           <div>
-            <${PctField} label="Platform quota" sub="Shared by every scenario, including subscriptions" unit="of one person"
+            <${PctField} label="Platform quota"
+              sub="FTE share for gateway, keys, FinOps, model lifecycle — own, rent, and subscriptions"
+              unit="of one person"
               value=${st.mgmt.platformQuota} onChange=${(v) => set("mgmt.platformQuota", v)} />
-            <${PctField} label="Infrastructure — appliance" sub="Vendor-validated stack, single update package"
+            <${PctField} label="Infrastructure — appliance"
+              sub="Extra FTE for vendor appliances only (own/rent). Ignored for subscriptions. Cut by automation"
               unit="added" value=${st.mgmt.applianceQuota} onChange=${(v) => set("mgmt.applianceQuota", v)} />
-            <${PctField} label="Infrastructure — assembled or rented node" sub="Engine tuning, quantisation, on-call"
+            <${PctField} label="Infrastructure — assembled or rented node"
+              sub="Extra FTE for tuned nodes (engine, quant, on-call). Own/rent only; cut by automation"
               unit="added" value=${st.mgmt.nodeQuota} onChange=${(v) => set("mgmt.nodeQuota", v)} />
           </div>
           <div>
-            <${PctField} label="Added per unit beyond the first" sub="Identical nodes are managed in bulk, but not for free"
+            <${PctField} label="Added per unit beyond the first"
+              sub="Incremental FTE × max(0, qty − 1) on own/rent fleets. Zero keeps multi-unit Management at €0"
               unit="each" value=${st.mgmt.perUnitQuota} onChange=${(v) => set("mgmt.perUnitQuota", v)} />
-            <${PctField} label="Supervision automation" sub="Agentic monitoring, runbooks, auto-restart. Cuts the infrastructure quota only"
+            <${PctField} label="Supervision automation"
+              sub="Fraction that cuts infrastructure quotas only — not platform. No effect while infra quotas are 0"
               unit="reduction" value=${st.mgmt.automation} onChange=${(v) => set("mgmt.automation", v)} />
             <${Field} label="Annual replacement reserve"
               sub="Expected failures and component replacement; support contracts are costed separately" unit="€/yr"
@@ -701,7 +712,7 @@ function ComparablesView({ st, set, catalog }) {
       </p>
       <div class="grid two">
         <${Panel} title="Seats">
-          <${Field} label="Developer plan" sub="The tier aimed at intensive agentic coding" unit="$/seat/mo"
+          <${Field} label="Developer plan" sub="Cursor / code plan for intensive agentic coding" unit="$/seat/mo"
             value=${st.subs.devPlan} step=${5} onChange=${(v) => set("subs.devPlan", v)} />
           <${Field} label="Occasional user plan" sub="Productivity suite with assistant included" unit="$/seat/mo"
             value=${st.subs.casualPlan} step=${1} onChange=${(v) => set("subs.casualPlan", v)} />

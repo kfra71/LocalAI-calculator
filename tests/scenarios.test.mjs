@@ -58,10 +58,16 @@ console.log("\n— apply + validate every preset —");
     truthy(`${preset.id} validates`, validation.valid);
     if (!validation.valid) console.log("       ", validation.errors.join(" "));
     check(`${preset.id} sets scenarioName`, st.scenarioName, preset.patch.scenarioName);
-    truthy(`${preset.id} does not use default 12M/700k power-office rates`,
-      st.workload.devIn !== defaults.workload.devIn ||
-      st.workload.devOut !== defaults.workload.devOut ||
-      preset.id.startsWith("sysint") === false);
+    check(`${preset.id} measured developer input rate`, st.workload.devIn, 45_000_000);
+    check(`${preset.id} measured developer output rate`, st.workload.devOut, 300_000);
+    check(`${preset.id} measured agent input rate`, st.agents.inPerHour, 3_000_000);
+    check(`${preset.id} measured agent output rate`, st.agents.outPerHour, 25_000);
+    check(`${preset.id} measured agent hours/day`, st.agents.hoursDay, 16);
+    truthy(`${preset.id} resets management quotas to zero`,
+      st.mgmt.platformQuota === 0 &&
+      st.mgmt.applianceQuota === 0 &&
+      st.mgmt.nodeQuota === 0 &&
+      st.mgmt.perUnitQuota === 0);
   }
 }
 
@@ -99,9 +105,8 @@ console.log("\n— industry-100 org totals and non-default tokens —");
     const st = applyScenarioPatch(baseState(), preset.patch);
     const total = st.org.devs + st.org.admin + st.org.marketing;
     check(`${id} headcount`, total, 100);
-    truthy(`${id} tokens differ from calculator defaults`,
-      st.workload.devOut !== defaults.workload.devOut ||
-      st.workload.devIn !== defaults.workload.devIn);
+    check(`${id} shares measured developer rates`, st.workload.devIn, defaults.workload.devIn);
+    check(`${id} shares measured developer output`, st.workload.devOut, defaults.workload.devOut);
     truthy(`${id} agents off`, st.agents.count === 0);
   }
   const finance = applyScenarioPatch(

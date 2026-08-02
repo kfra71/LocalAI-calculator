@@ -53,14 +53,14 @@ console.log("\n— workload, people only —");
 {
   const st = baseState();
   const w = workload(st);
-  check("input tokens/year", w.totalIn, 54_230_000_000);
-  check("output tokens/year", w.totalOut, 3_454_000_000);
-  check("input:output ratio", w.ioRatio, 15.70, 0.01);
+  check("input tokens/year", w.totalIn, 199_430_000_000);
+  check("output tokens/year", w.totalOut, 1_694_000_000);
+  check("input:output ratio", w.ioRatio, 117.73, 0.01);
   // Peak averages over weighted active population: devs + 0.15×admin + 0.15×marketing.
   check("peak factor (weighted active population)", w.peakUsed, 3.384, 0.01);
-  check("sustained decode, people", w.decodePeople, 545.14);
+  check("sustained decode, people", w.decodePeople, 267.36);
   check("sustained decode, agents (none)", w.decodeAgents, 0);
-  check("combined peak decode", w.decodePeak, 1844.73, 0.01);
+  check("combined peak decode", w.decodePeak, 904.74, 0.01);
   check("concurrent sessions", w.sessionsTotal, 16.5);
   check("resident KV required", w.kvRequired, 1_650_000);
 }
@@ -71,7 +71,7 @@ console.log("\n— workload, with 25 autonomous agents —");
   st.agents.count = 25;
   const w = workload(st);
   truthy("agents add tokens", w.agents.totalIn > 0);
-  check("agent tokens/year (in)", w.agents.totalIn, 25 * 365 * 24 * 400000);
+  check("agent tokens/year (in)", w.agents.totalIn, 25 * 365 * 16 * 3000000);
   truthy("agent decode is flat, not peaked", w.decodeAgents * st.agents.peakFactor < w.decodePeople * w.peakUsed);
   check("KV now includes agent context", w.kvRequired, 16.5 * 100000 + 25 * 180000);
 }
@@ -104,9 +104,9 @@ console.log("\n— three constraints, and which one binds —");
   const rtx4 = st.hardware.find((h) => h.id === "rtxpro-4x");
   const s = sizeOption(rtx4, st, wl);
   check("units by KV", s.unitsKv, 1);
-  check("combined serving units", s.unitsServing, 2);
+  check("combined serving units", s.unitsServing, 3);
   check("units by concurrency (maxSeqs 64)", s.unitsSeqs, 1);
-  check("units bought", s.units, 2);
+  check("units bought", s.units, 3);
   truthy("combined serving is among the binding constraints", (s.bindings || [s.binding]).includes("serving"));
 }
 
@@ -356,14 +356,27 @@ console.log("\n— full run —");
   truthy("has an alternative", !!r.bestAlt);
   truthy("every option has a total", r.options.every((o) => Number.isFinite(o.cost.total)));
   truthy("subscriptions option present", r.options.some((o) => o.kind === "subscription"));
+  // Quotas and ongoing staff hours start at zero; owned/rented mgmt4 may still
+  // include one-time setup hours from the hardware catalogue.
+  truthy("management FTE quotas default to zero on every configuration",
+    r.options.every((o) => (o.cost.mgmtQuota || 0) === 0 && (o.cost.mgmtHoursDay || 0) === 0));
+  truthy("subscriptions have no management euros when platform quota is zero",
+    r.options.find((o) => o.kind === "subscription").cost.mgmt4 === 0);
+
+  // Relative appliance vs node staffing only appears once the user opts into quotas.
+  const withMgmt = baseState();
+  withMgmt.mgmt = {
+    platformQuota: 0.15, applianceQuota: 0.035, nodeQuota: 0.12, perUnitQuota: 0.01, automation: 0.4,
+  };
+  const rm = compute(withMgmt);
   truthy("rented options cost the same management hours as owned nodes",
     Math.abs(
-      r.options.find((o) => o.hw.id === "ovh-h200-4x").cost.mgmtQuota -
-      r.options.find((o) => o.hw.id === "h200-4x").cost.mgmtQuota
+      rm.options.find((o) => o.hw.id === "ovh-h200-4x").cost.mgmtQuota -
+      rm.options.find((o) => o.hw.id === "h200-4x").cost.mgmtQuota
     ) < 1e-9);
   truthy("appliances need less management than assembled nodes",
-    r.options.find((o) => o.hw.id === "station-gb300").cost.mgmtQuota <
-    r.options.find((o) => o.hw.id === "rtxpro-4x").cost.mgmtQuota);
+    rm.options.find((o) => o.hw.id === "station-gb300").cost.mgmtQuota <
+    rm.options.find((o) => o.hw.id === "rtxpro-4x").cost.mgmtQuota);
   console.log(`       cheapest owned:       ${r.bestOwn.hw.label} — €${Math.round(r.bestOwn.cost.total).toLocaleString()}`);
   console.log(`       cheapest alternative: ${r.bestAlt.hw.label} — €${Math.round(r.bestAlt.cost.total).toLocaleString()}`);
   console.log(`       ownership premium:    €${Math.round(r.delta).toLocaleString()} (${(r.premiumActual * 100).toFixed(1)}%)`);

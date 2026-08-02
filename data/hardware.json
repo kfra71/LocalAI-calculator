@@ -26,7 +26,7 @@
       "batching": 1.6,
       "confidence": "measured",
       "topology": "TP=2 over RoCE/IB",
-      "notes": "Efficiency and batching calibrated against a published recipe: 55.4 tok/s single stream, 88.6 aggregate on realistic mixed traffic at concurrency 4. Prefill is an order of magnitude below HBM systems, and there is a documented 30% cold penalty after any idle period.",
+      "notes": "Efficiency and batching calibrated against the published MiaAI-Lab decode bench: 82.4 tok/s single stream, 120.4 aggregate / 33.6 per stream at concurrency 4 (peak aggregate 134.6 at x3). Prefill is an order of magnitude below HBM systems.",
       "sovereign": true
     },
     {
