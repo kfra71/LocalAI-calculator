@@ -80,7 +80,7 @@ not 1.00. Write the number that reconciles, and explain the discrepancy in `note
   "efficiency": 0.06,         // measured decode ÷ theoretical. Be conservative.
   "batching": 6.0,            // aggregate ÷ single stream
   "peakKw": 2.9, "idleKw": 0.8, "pue": 1.35,
-  "infraPerUnit": 12000, "setupHours": 340, "supportPerUnit": 4000,
+  "infraPerUnit": 12000, "setupHours": 16, "supportPerUnit": 4000,
   "sovereign": true,
   "confidence": "estimated",
   "topology": "TP=4 over PCIe Gen5",

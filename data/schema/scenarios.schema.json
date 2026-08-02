@@ -23,6 +23,7 @@
               "org": { "type": "object" },
               "workload": { "type": "object" },
               "agents": { "type": "object" },
+              "mgmt": { "type": "object" },
               "resilience": { "type": "object" },
               "requirements": { "type": "object" }
             }

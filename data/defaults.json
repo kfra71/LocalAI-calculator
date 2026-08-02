@@ -13,10 +13,10 @@
   },
 
   "mgmt": {
-    "platformQuota": 0.15,
-    "applianceQuota": 0.035,
-    "nodeQuota": 0.12,
-    "perUnitQuota": 0.010,
+    "platformQuota": 0,
+    "applianceQuota": 0,
+    "nodeQuota": 0,
+    "perUnitQuota": 0,
     "automation": 0.40
   },
 
@@ -30,7 +30,7 @@
   },
 
   "workload": {
-    "devIn": 12000000, "devOut": 700000,
+    "devIn": 45000000, "devOut": 300000,
     "adminIn": 250000, "adminOut": 60000,
     "mktIn": 150000, "mktOut": 50000,
     "caching": 0.70,
@@ -48,9 +48,9 @@
 
   "agents": {
     "count": 0,
-    "hoursDay": 24,
+    "hoursDay": 16,
     "daysYear": 365,
-    "inPerHour": 400000,
+    "inPerHour": 3000000,
     "outPerHour": 25000,
     "caching": 0.90,
     "sharedPrefixTokens": 0,
@@ -80,7 +80,7 @@
   },
 
   "subs": {
-    "devPlan": 100.00,
+    "devPlan": 200.00,
     "casualPlan": 14.00,
     "overage": 0.20,
     "devIncludedTokensYear": 2500000000,
@@ -123,7 +123,7 @@
   },
 
   "subscriptionRefs": [
-    { "label": "Anthropic Claude, developer plan", "price": 100, "unit": "$/seat/month", "note": "Tier aimed at intensive agentic coding" },
+    { "label": "Cursor / code plan", "price": 200, "unit": "$/seat/month", "note": "Intensive agentic coding seat (Cursor Ultra-class)" },
     { "label": "Gemini Enterprise Business", "price": 21, "unit": "$/seat/month", "note": "Standard 30, Plus 50" },
     { "label": "Microsoft 365 Copilot", "price": 30, "unit": "$/seat/month", "note": "" },
     { "label": "Workspace Business Standard", "price": 14, "unit": "$/seat/month", "note": "Gemini included, for occasional users" },

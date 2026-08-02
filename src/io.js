@@ -35,12 +35,13 @@ const V2_DEFAULTS = {
   manualQty: {},
 };
 
-const SCENARIO_PATCH_KEYS = ["org", "workload", "agents", "resilience", "requirements"];
+const SCENARIO_PATCH_KEYS = ["org", "workload", "agents", "mgmt", "resilience", "requirements"];
 
 /**
  * Apply a guided-setup preset patch onto an existing state.
  * Deep-merges sizing-relevant objects and sets scenarioName.
  * Leaves model, hardware, economics, and staff rates untouched.
+ * Guided presets reset mgmt quotas to zero so management cost starts off.
  */
 export function applyScenarioPatch(state, patch) {
   if (!state || !patch) {
