@@ -870,7 +870,7 @@ function ResultsView({ st, r, sensitivity, onQuote }) {
 
       <${Panel} title="Request a quote" hint="buy or deploy a configuration">
         <p class="lede" style=${{ marginBottom: 12 }}>
-          Want help purchasing, renting, or standing up one of these options? Opens a Google Form and copies a
+          Want help purchasing, renting, or standing up one of these options? Opens the Dinova contact page and copies a
           scenario summary to your clipboard so you can paste it in. The calculator itself still does not send your data.
         </p>
         <div class="row" style=${{ gap: 8, flexWrap: "wrap" }}>
@@ -1159,7 +1159,7 @@ function ExportView({ st, r, onImport, onExport, onMarkdown, onReset, onQuote })
 
       <${Panel} title="Request a quote">
         <p class="lede" style=${{ marginBottom: 12 }}>
-          Ready to buy or deploy? We copy a LocalAI-TCO scenario summary to your clipboard and open a Google Form.
+          Ready to buy or deploy? We copy a LocalAI-TCO scenario summary to your clipboard and open the Dinova contact page.
         </p>
         <button class="btn primary" type="button" onClick=${() => onQuote(r.bestOwn || null)}
           disabled=${!r.validation?.valid || !r.bestOwn?.sizing?.fits || !r.bestOwn?.eligibility?.eligible || r.bestOwn?.cost?.underProvisioned}>

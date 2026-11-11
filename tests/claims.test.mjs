@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { buildMarkdown } from "../src/io.js";
 import { compute } from "../src/engine.js";
+import { RFQ_FORM_URL, buildRfqSummary } from "../src/rfq.js";
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const defaults = read("../data/defaults.json");
@@ -67,6 +68,10 @@ checkProject("il copy di progetto dichiara l'ambito direzionale",
   projectCopy.includes("directional sensitivity estimator"));
 checkProject("il copy di progetto identifica le prove di runtime fissate",
   projectCopy.includes("Pinned model, hardware and runtime evidence"));
+checkProject("la richiesta di preventivo porta alla pagina contatti di Dinova",
+  RFQ_FORM_URL === "https://www.dinova.one/contatti/");
+checkProject("il riepilogo del preventivo non nomina più il modulo Google",
+  !buildRfqSummary(state, compute(state, profiles)).includes("Google"));
 
 function checkProject(name, condition) {
   if (condition) { pass++; console.log(`  ok   ${name}`); }

@@ -1,10 +1,10 @@
 /**
- * Request-for-quote → Google Form.
- * Paste the published form URL below when you have it.
- * The app copies a scenario summary to the clipboard, then opens the form
- * so the requester can paste it into the scenario summary field of the form.
+ * Request-for-quote → Dinova contact page.
+ * Paste the published contact URL below when you have it.
+ * The app copies a scenario summary to the clipboard, then opens the contact
+ * page so the requester can paste it into the message field of the form.
  */
-export const RFQ_FORM_URL = "https://forms.gle/Dm3w5JAhwHGrCSBo8";
+export const RFQ_FORM_URL = "https://www.dinova.one/contatti/";
 
 const nf = (n, d = 0) =>
   !Number.isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -14,7 +14,7 @@ export function isRfqConfigured() {
   return typeof RFQ_FORM_URL === "string" && /^https?:\/\//i.test(RFQ_FORM_URL.trim());
 }
 
-/** Compact block the user pastes into the Google Form textarea. */
+/** Compact block the user pastes into the contact form message field. */
 export function buildRfqSummary(st, r, option = null) {
   const target = option || r.bestOwn;
   const lines = [
@@ -60,7 +60,7 @@ export function buildRfqSummary(st, r, option = null) {
     `Warnings: ${r.validation?.warnings?.join(" ") || "none"}`,
     "Comparability: workload shape is aligned; model quality, latency, context, tooling and legal suitability require separate validation.",
     "",
-    "Paste this block into the scenario summary field of the form.",
+    "Paste this block into the message field of the form.",
   ];
   return lines.join("\n");
 }
@@ -91,7 +91,7 @@ async function copyText(text) {
 }
 
 /**
- * Copy the RFQ summary and open the Google Form.
+ * Copy the RFQ summary and open the contact page.
  * @returns {Promise<{ ok: boolean, message: string, err?: boolean }>}
  */
 export async function openRfqForm(st, r, option = null) {
@@ -112,7 +112,7 @@ export async function openRfqForm(st, r, option = null) {
   return {
     ok: true,
     message: copied
-      ? "Scenario summary copied. Paste it into the scenario summary field."
-      : "Quote form opened. Copy your Markdown/JSON export into the scenario summary field if needed.",
+      ? "Scenario summary copied. Paste it into the message field."
+      : "Quote form opened. Copy your Markdown/JSON export into the message field if needed.",
   };
 }
