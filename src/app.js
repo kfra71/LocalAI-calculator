@@ -1251,10 +1251,30 @@ function App({ catalog }) {
     say(result.message, result.err);
   }, [st, r, canQuote]);
 
+  // I campi del modello che l'utente può modificare a schermo: uno scenario
+  // importato li conserva, tutto il resto (ricette, note, percorso di offload)
+  // torna al catalogo corrente, così uno scenario salvato prima non resta con
+  // metadati vecchi.
+  const EDITABLE_MODEL_FIELDS = [
+    "name", "quantLabel", "totalB", "activeB", "bytesPerParam", "kvKbPerToken",
+    "specTokens", "prefillRatio", "maxContext", "maxSeqs", "overheadPerGpu",
+  ];
+
   const handleImport = async (file) => {
     try {
       const data = await importJson(file);
-      setSt(data.state);
+      const next = data.state;
+      const cat = next?.model?.id
+        ? catalog.models.models.find((m) => m.id === next.model.id)
+        : null;
+      if (cat) {
+        const edited = {};
+        for (const k of EDITABLE_MODEL_FIELDS) {
+          if (next.model[k] !== undefined) edited[k] = next.model[k];
+        }
+        next.model = { ...cat, ...edited };
+      }
+      setSt(next);
       const migrated = data.migrationsApplied?.length
         ? ` Migrato: ${data.migrationsApplied.join(", ")}.`
         : "";

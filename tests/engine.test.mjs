@@ -459,5 +459,25 @@ console.log("\n— scoring dei prospect —");
   console.log(`       solo settore: ${s1.total} (${s1.verdict})   ·   con trigger: ${s2.total} (${s2.verdict})`);
 }
 
+console.log("\n— le righe escluse dicono perché sono escluse —");
+{
+  const st = baseState();
+  st.model = { ...models.models.find((m) => m.id === "deepseek-v4.1-flash") };
+  const r = compute(st, profiles);
+  const station = r.options.find((o) => o.hw.id === "station-gb300");
+  truthy("la stazione è esclusa perché i pesi non entrano",
+    !station.eligibility.eligible &&
+    station.eligibility.reasons.some((x) => x.includes("non entrano nei 279 GB")));
+  truthy("la stazione spiega il percorso con DRAM ospite",
+    station.eligibility.reasons.some((x) => x.includes("DRAM ospite")));
+  const h200 = r.options.find((o) => o.hw.id === "h200-4x");
+  truthy("H200 è escluso per la precisione, non per la memoria",
+    h200.eligibility.reasons.some((x) => x.includes("precisione del checkpoint")));
+  truthy("nessuna riga ripete il messaggio generico",
+    !r.options.some((o) => o.eligibility.reasons.includes("Il modello non entra o il deployment è incompatibile.")));
+  truthy("una riga che non entra non parla di quantità manuale",
+    !station.eligibility.reasons.some((x) => x.includes("quantità manuale")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

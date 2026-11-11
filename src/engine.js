@@ -309,6 +309,23 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
   const blended = safeDiv(1, safeDiv(1, aggregate) + safeDiv(st.resale?.mix || 0, prefill));
 
   const fits = derived.compatible && freeGb > 0 && finitePositive(aggregate) && finitePositive(prefill);
+  // Why a row is out: the reader must be able to tell "does not fit" from
+  // "this hardware cannot serve this checkpoint format".
+  const fitIssues = [];
+  if (!derived.compatible) {
+    fitIssues.push(
+      derived.fellBack
+        ? `Ripiego a ${derived.precision} ma bytesPerParamByPrecision non ha una voce corrispondente.`
+        : `La precisione del checkpoint (${derived.precision}) non è supportata da questo hardware.`
+    );
+  } else if (freeGb <= 0) {
+    fitIssues.push(
+      `I pesi del checkpoint (${Math.round(weightsGb)} GB) non entrano nei ${Math.round(hw.memGb)} GB di memoria del nodo.`
+    );
+    if (m.hostOffloadNote) fitIssues.push(m.hostOffloadNote);
+  } else if (!finitePositive(aggregate) || !finitePositive(prefill)) {
+    fitIssues.push("Il nodo non ha una capacità di decode o prefill utilizzabile per questo checkpoint.");
+  }
   if (!derived.compatible) {
     warnings.push(
       derived.fellBack
@@ -383,6 +400,7 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     bands: { decode: aggregateRange, prefill: prefillRange, kvKbPerToken: kvRange },
     maxSeqs, targetUtilization, servingLoad,
     fits, unitsKv, unitsDecode, unitsPrefill, unitsServing, unitsSeqs,
+    fitIssues,
     unitsKvConservative, unitsServingConservative,
     minimumUnits, conservativeMinimumUnits, recommendedUnits, units: recommendedUnits,
     binding: baseBinding.binding, bindings: baseBinding.bindings,
@@ -714,8 +732,14 @@ function optionEligibility(hw, st, sizing, cost) {
   const minimum = CONFIDENCE_RANK[req.minimumConfidence] ?? 0;
   const actual = CONFIDENCE_RANK[sizing.profileConfidence || hw.confidence] ?? 0;
   if (actual < minimum) reasons.push("Il livello di confidenza dell'evidenza è inferiore al minimo dello scenario.");
-  if (!sizing.fits) reasons.push("Il modello non entra o il deployment è incompatibile.");
-  if (cost.underProvisioned) reasons.push("La quantità manuale è inferiore alla raccomandazione conservativa di produzione.");
+  if (!sizing.fits) {
+    reasons.push(
+      ...(sizing.fitIssues?.length
+        ? sizing.fitIssues
+        : ["Il modello non entra o il deployment è incompatibile."])
+    );
+  }
+  if (cost.underProvisioned && sizing.fits) reasons.push("La quantità manuale è inferiore alla raccomandazione conservativa di produzione.");
   return {
     eligible: reasons.length === 0,
     reasons,

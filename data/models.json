@@ -263,6 +263,7 @@
       "license": "MIT",
       "confidence": "kv-derived",
       "profileIds": ["deepseek41-b300-4x"],
+      "hostOffloadNote": "La ricetta NVIDIA lo serve anche su una singola DGX Station: le tabelle Engram (189 GiB) e 60 GiB di esperti instradati restano in DRAM ospite e si leggono via UVA, con i pesi residenti in GPU a circa 227 GiB e un pool KV di 3,09M token a 1M di contesto. Questo strumento non modella il tier DRAM ospite, quindi su un nodo la cui memoria non basta per il checkpoint la riga resta esclusa, anche se la ricetta vendor esiste.",
       "sources": [
         "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
         "https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash",
