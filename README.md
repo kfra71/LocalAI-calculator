@@ -243,7 +243,16 @@ su FP8 con i pesi raddoppiati. È la differenza che decide quale hardware compra
 
 Le configurazioni con TP=4 e TP=8 hanno una banda aggregata che cresce meno della
 memoria, perché l'all-reduce attraversa il tessuto: per questo il prefill e
-l'efficienza di quei nodi sono stimati, e dichiarati come stime.
+l'efficienza di quei nodi sono stimati, e dichiarati come stime. Vale la pena
+saperlo quando guardi un totale: su un nodo Spark il **prefill**, non il decode,
+detta il numero di unità, perché il prefill di una DGX Spark è un ordine di
+grandezza sotto quello di un sistema con HBM. Dieci cluster da 8 Spark non sono
+una scelta per un modello da 60 GB: sono il prezzo di un prefill che non scala.
+
+Il nodo da 8× RTX PRO 6000 e quello da 8× DGX Spark esistono per i checkpoint
+che altrove non entrano: DeepSeek V4.1 Flash (510 GB), MiniMax M3.1 (252 GB),
+Muse Spark Open (533 GB). Per un modello da 22-140 GB sono dominate da nodi più
+piccoli, e la tabella li mostra con la loro cifra perché il confronto spetti a te.
 
 ## Cosa questo strumento non vi dirà
 

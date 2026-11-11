@@ -53,7 +53,7 @@
       "batching": 1.461,
       "confidence": "estimated",
       "topology": "TP=4 su RoCE/IB (CX-7 100 Gbps)",
-      "notes": "Quattro GB10 con tensor parallel su 4 nodi: è la forma in cui NVIDIA ha pubblicato lo studio più completo su Qwen3.8 27B (da TP=2 a TP=4 il C1 passa da 51,8 a 77,3 tok/s, con sweep fino a C32) e da cui nasce il profilo qwen38-spark4-nvfp4. Efficienza e batching ereditano la calibrazione del nodo 2× (stesso tessuto RoCE/IB), il prefill è stimato con crescita sub-lineare perché l'all-reduce aggiunge un passaggio, prezzo e potenza scalano per unità. GB10 ha 128 GB di memoria unificata: 100 GB utilizzabili per nodo, il resto è LPDDR5X, che non è HBM.",
+      "notes": "Quattro GB10 con tensor parallel su 4 nodi: è la forma in cui NVIDIA ha pubblicato lo studio più completo su Qwen3.8 27B (da TP=2 a TP=4 il C1 passa da 51,8 a 77,3 tok/s, con sweep fino a C32) e da cui nasce il profilo qwen38-spark4-nvfp4. Efficienza e batching ereditano la calibrazione del nodo 2× (stesso tessuto RoCE/IB); il prefill è stimato a 4.500 tok/s perché l'all-reduce dei chunk di prefill viaggia su CX-7 a 100 Gbps e non scala con i nodi, ed è il prefill a guidare il numero di unità di questa riga più del decode. Prezzo, potenza e infrastruttura scalano per unità: sono stime, non listino. GB10 ha 128 GB di memoria unificata: 100 GB utilizzabili per nodo, il resto è LPDDR5X, che non è HBM.",
       "sovereign": true
     },
     {
@@ -80,7 +80,7 @@
       "batching": 1.461,
       "confidence": "estimated",
       "topology": "TP=8 su RoCE/IB (CX-7 100 Gbps)",
-      "notes": "Otto GB10 in TP=8: nessuna ricetta pubblicata su 8 nodi, quindi per i modelli NVFP4 il calcolo passa dal percorso di stima di bandwidth. L'efficienza scende a 0,22 rispetto al nodo 2× (0,2446) perché con TP=8 l'all-reduce attraversa un passaggio in più del tessuto; il prefill è stimato con crescita sub-lineare. È la forma che serve per i checkpoint NVFP4 da 200-510 GB, che su 4 nodi non entrano.",
+      "notes": "Otto GB10 in TP=8: nessuna ricetta pubblicata su 8 nodi, quindi per i modelli NVFP4 il calcolo passa dal percorso di stima di bandwidth e il decode arriva dal trasferimento cross-SKU del profilo misurato sul nodo 2× (fattore di produzione 0,55 con haircut 0,85). L'efficienza scende a 0,22 rispetto al nodo 2× (0,2446) perché con TP=8 l'all-reduce attraversa un passaggio in più del tessuto; il prefill è stimato a 6.900 tok/s perché l'all-reduce dei chunk di prefill viaggia su CX-7 a 100 Gbps e non scala con i nodi: da qui il numero di unità di questa riga, che è guidato dal prefill e non dal decode. È la forma che serve ai checkpoint NVFP4 da 200-510 GB (DeepSeek V4.1, MiniMax M3.1, Muse Spark Open), che su 4 nodi non entrano: per un modello da 60-140 GB la riga è dominata da nodi più piccoli.",
       "sovereign": true
     },
     {
