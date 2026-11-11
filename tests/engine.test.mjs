@@ -128,7 +128,7 @@ console.log("\n— i profili measured battono le stime di bandwidth quando corri
   const outsideProfile = sizeOption(station, laguna, workload(laguna), profiles);
   check("il profilo fuori dal contesto testato ricade", outsideProfile.profileId, null);
   truthy("il fallback per contesto testato è spiegato",
-    outsideProfile.warnings.some((w) => w.includes("tested only")));
+    outsideProfile.warnings.some((w) => w.includes("testato solo")));
 }
 
 console.log("\n— il soffitto di concorrenza può diventare il vincolo che lega —");
@@ -267,7 +267,7 @@ console.log("\n— region match, sensibilità di peakManual e vincolo della racc
   const r = compute(st, profiles);
   const scaleway = r.options.find((o) => o.hw.id === "scaleway-b300-8x");
   truthy("Scaleway Francia/Olanda rispetta la preferenza di regione EU (France)",
-    !scaleway.eligibility.referenceNotes.some((n) => n.includes("preferred regions")));
+    !scaleway.eligibility.referenceNotes.some((n) => n.includes("regioni preferite")));
   truthy("una preferenza di regione corrispondente mantiene il noleggio eleggibile", scaleway.eligibility.eligible);
   const usOnly = baseState();
   usOnly.requirements.regions = ["US"];
@@ -275,7 +275,7 @@ console.log("\n— region match, sensibilità di peakManual e vincolo della racc
   const usScaleway = compute(usOnly, profiles).options.find((o) => o.hw.id === "scaleway-b300-8x");
   truthy("Scaleway fuori da una preferenza solo-US è etichettata come riferimento, non esclusa",
     usScaleway.eligibility.eligible &&
-    usScaleway.eligibility.referenceNotes.some((n) => n.includes("preferred regions")));
+    usScaleway.eligibility.referenceNotes.some((n) => n.includes("regioni preferite")));
 
   const peak = baseState();
   peak.workload.peakManual = 5;

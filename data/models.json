@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/model.schema.json",
-  "note": "Add a model by copying an entry. Six architecture parameters drive the whole calculation. See schema/model.schema.json for the field definitions. models[0] is the product default.",
+  "note": "Aggiungi un modello copiando una voce. Sei parametri di architettura guidano l'intero calcolo. Vedi schema/model.schema.json per la definizione dei campi. models[0] è il modello predefinito del prodotto.",
   "models": [
     {
       "id": "qwen3.6-35b-a3b",
@@ -19,7 +19,7 @@
       "prefillRatio": 25.0,
       "maxSeqs": 64,
       "overheadPerGpu": 6,
-      "license": "Apache-2.0 (verify checkpoint)",
+      "license": "Apache-2.0 (verifica il checkpoint)",
       "confidence": "published",
       "profileIds": ["qwen36-spark-nvfp4", "qwen36-rtxpro2-nvfp4"],
       "sources": [
@@ -27,7 +27,7 @@
         "https://huggingface.co/AEON-7/Qwen3.6-35B-A3B-heretic-NVFP4",
         "https://www.vaditaslim.com/blog/ai/qwen3.6-benchmarks-rtx-pro-6000"
       ],
-      "notes": "Product default. Yardstick for appliance SKUs (Spark / RTX PRO). Weights ~22 GB NVFP4 → 0.63 bytes/param. KV/token from the published single-Spark recipe: 62.08 GiB KV for 5,359,388 tokens → 11.58 KB/token. specTokens=2.0 reflects native MTP in that stack (acceptance varies; profiles carry measured throughput). Prefer NVFP4 on Blackwell; FP8 is a supported fallback."
+      "notes": "Modello predefinito del prodotto. Riferimento per gli SKU appliance (Spark / RTX PRO). Pesi ~22 GB NVFP4 → 0.63 byte/param. KV/token dalla ricetta pubblicata su un solo Spark: 62.08 GiB KV per 5,359,388 token → 11.58 KB/token. specTokens=2.0 riflette l'MTP nativo in quello stack (l'accettazione varia; i profili riportano il throughput misurato). Preferisci NVFP4 su Blackwell; FP8 è un fallback supportato."
     },
     {
       "id": "deepseek-v4-flash-0731",
@@ -47,14 +47,14 @@
       "prefillRatio": 12.6,
       "maxSeqs": 64,
       "overheadPerGpu": 10,
-      "license": "Verify weight licence for commercial use",
+      "license": "Verifica la licenza dei pesi per l'uso commerciale",
       "confidence": "kv-derived",
       "profileIds": ["deepseek-spark-published"],
       "sources": [
         "https://openrouter.ai/deepseek/deepseek-v4-flash-0731",
         "https://github.com/tonyd2wild/DeepSeek-v4-Flash-0731-DSpark-1M-NVFP4-KV-2x-DGX-Spark"
       ],
-      "notes": "Weights 284B total / 13B active per OpenRouter. KV/token calibrated against the 2x DGX Spark recipe (1,548,597 token pool at util 0.78) with NVFP4 KV (kv_cache_dtype=nvfp4_ds_mla). RESOLVED vs the FP8 community figure: that ~10.6 KB/token measurement used FP8 KV on a different checkpoint and belongs only on deepseek-v4-flash-0731-fp8 — not a second sample of this NVFP4-KV path. Boot-to-boot KV pool still swings ~11%; treat 27.77 as the recipe baseline."
+      "notes": "Pesi 284B totali / 13B attivi secondo OpenRouter. KV/token calibrati sulla ricetta 2x DGX Spark (pool di 1,548,597 token a util 0.78) con KV NVFP4 (kv_cache_dtype=nvfp4_ds_mla). RESOLVED rispetto al dato community FP8: quella misurazione di ~10.6 KB/token usava KV FP8 su un checkpoint diverso e appartiene solo a deepseek-v4-flash-0731-fp8, non è un secondo campione di questo percorso NVFP4-KV. Il pool KV da un avvio all'altro oscilla ancora di ~11%; considera 27.77 come baseline della ricetta."
     },
     {
       "id": "deepseek-v4-flash-0731-fp8",
@@ -74,11 +74,11 @@
       "prefillRatio": 12.6,
       "maxSeqs": 64,
       "overheadPerGpu": 3,
-      "license": "Verify weight licence for commercial use",
+      "license": "Verifica la licenza dei pesi per l'uso commerciale",
       "confidence": "community",
       "profileIds": ["deepseek-rtxpro-community"],
       "sources": ["community report, July 2026"],
-      "notes": "Back-derived from a community run: 167 GB measured weights / 284B = 0.588 bytes per parameter, so not pure FP8. KV/token from a 988K pool in 13.5 GB free with FP8 KV. Not comparable to the NVFP4-KV Spark recipe — different cache dtype and checkpoint. Treat as unverified until a pinned first-party soak exists."
+      "notes": "Derivato a posteriori da un'esecuzione community: 167 GB di pesi misurati / 284B = 0.588 byte per parametro, quindi non è FP8 puro. KV/token da un pool di 988K in 13.5 GB liberi con KV FP8. Non confrontabile con la ricetta Spark NVFP4-KV: dtype della cache e checkpoint diversi. Da considerare non verificato finché non esiste un soak first-party fissato."
     },
     {
       "id": "laguna-s-2-1",
@@ -97,11 +97,11 @@
       "prefillRatio": 66.0,
       "maxSeqs": 64,
       "overheadPerGpu": 8,
-      "license": "OpenMDW-1.1 (permissive)",
+      "license": "OpenMDW-1.1 (permissiva)",
       "confidence": "measured",
       "profileIds": ["laguna-station-measured"],
       "sources": ["Operator run on 1x DGX Station GB300, July 2026"],
-      "notes": "KV/token derived from a measured run: 2,767,665 resident tokens in ~199 GB free. Prefill/decode ratio from the same run (43,026 vs 652 tok/s)."
+      "notes": "KV/token derivati da un'esecuzione misurata: 2,767,665 token residenti in ~199 GB liberi. Rapporto prefill/decode dalla stessa esecuzione (43,026 vs 652 tok/s)."
     },
     {
       "id": "qwen3.5-397b-a17b",
@@ -127,7 +127,7 @@
         "https://huggingface.co/nvidia/Qwen3.5-397B-A17B-NVFP4",
         "https://nvidia.github.io/TensorRT-LLM/latest/deployment-guide/deployment-guide-for-qwen3.5-on-trtllm.html"
       ],
-      "notes": "Flagship Qwen3.5 MoE (512 experts, 10 routed + 1 shared). NVFP4 is NVIDIA's recommended Blackwell deploy precision; minimum validated footprint is 4× B200/B300/GB200/GB300. KV/token derived for FP8 KV on the ~15 full-attention blocks in the 3×GDN→1×GQA layout (15 × 2 × 2 × 256 × 1 B ≈ 15 KB/token); GDN state is fixed-size overhead. Throughput on b300-4x is deploy-guide validated for fit, not a published tok/s table — see profile."
+      "notes": "Qwen3.5 MoE di punta (512 esperti, 10 instradati + 1 condiviso). NVFP4 è la precisione di deploy su Blackwell raccomandata da NVIDIA; l'ingombro minimo validato è 4× B200/B300/GB200/GB300. KV/token derivati per KV FP8 sui ~15 blocchi di full attention nel layout 3×GDN→1×GQA (15 × 2 × 2 × 256 × 1 B ≈ 15 KB/token); lo stato GDN è un sovraccarico a dimensione fissa. Il throughput su b300-4x è validato dalla guida di deploy per il solo fit, non è una tabella tok/s pubblicata: vedi il profilo."
     },
     {
       "id": "gpt-oss-120b",
@@ -154,7 +154,7 @@
         "https://arxiv.org/html/2508.10925",
         "https://nvidia.github.io/TensorRT-LLM/developer-guide/perf-overview.html"
       ],
-      "notes": "Yardstick for datacenter SKUs. Official checkpoint ~60.8 GiB for 116.8B params → 0.52 bytes/param (MXFP4 MoE). KV/token derived for FP8 KV on the 18 full-attention layers only: 18 × 2 × 8 × 64 × 1 B = 18 KB/token; 18 sliding-window layers are a fixed buffer (folded into overhead), not per-token growth. Default NVFP4/MXFP4 on Blackwell; engine falls back to FP8 on Hopper (H200). TRT-LLM tables are offline max-throughput — see Benchmarks."
+      "notes": "Riferimento per gli SKU datacenter. Checkpoint ufficiale ~60.8 GiB per 116.8B parametri → 0.52 byte/param (MXFP4 MoE). KV/token derivati per KV FP8 solo sui 18 livelli di full attention: 18 × 2 × 8 × 64 × 1 B = 18 KB/token; i 18 livelli a sliding window sono un buffer a dimensione fissa (incluso nel sovraccarico), non crescono per token. Predefinito NVFP4/MXFP4 su Blackwell; l'engine ricade su FP8 su Hopper (H200). Le tabelle TRT-LLM sono di max-throughput offline: vedi Benchmarks."
     },
     {
       "id": "generic-70b-dense",
@@ -173,11 +173,11 @@
       "prefillRatio": 30.0,
       "maxSeqs": 64,
       "overheadPerGpu": 6,
-      "license": "Depends on the model you substitute",
+      "license": "Dipende dal modello che sostituisci",
       "confidence": "template",
       "profileIds": [],
       "sources": [],
-      "notes": "Starting point for a small-tier package. On a dense model total and active parameters are the same number, which is why it decodes far slower than a MoE of the same footprint."
+      "notes": "Punto di partenza per un pacchetto di fascia piccola. Su un modello dense i parametri totali e attivi sono lo stesso numero, ed è per questo che decodifica molto più lentamente di un MoE con lo stesso ingombro."
     }
   ]
 }

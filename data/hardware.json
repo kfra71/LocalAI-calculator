@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/hardware.schema.json",
-  "note": "kind: 'own' = you buy it. 'rent' = hourly from a provider. Prices in USD unless currency says EUR. See schema/hardware.schema.json for the field definitions.",
+  "note": "kind: 'own' = lo compri. 'rent' = a noleggio orario da un provider. Prezzi in USD salvo diversa indicazione della valuta. Vedi schema/hardware.schema.json per la definizione dei campi.",
   "hardware": [
     {
       "id": "spark-2x",
@@ -25,8 +25,8 @@
       "efficiency": 0.2446,
       "batching": 1.461,
       "confidence": "measured",
-      "topology": "TP=2 over RoCE/IB",
-      "notes": "Efficiency and batching calibrated against the published MiaAI-Lab decode bench: 82.4 tok/s single stream, 120.4 aggregate / 33.6 per stream at concurrency 4 (peak aggregate 134.6 at x3). Prefill is an order of magnitude below HBM systems.",
+      "topology": "TP=2 su RoCE/IB",
+      "notes": "Efficienza e batching calibrati sul bench di decode pubblicato da MiaAI-Lab: 82.4 tok/s a stream singolo, 120.4 aggregato / 33.6 per stream a concorrenza 4 (picco aggregato 134.6 a x3). Il prefill è un ordine di grandezza inferiore rispetto ai sistemi con HBM.",
       "sovereign": true
     },
     {
@@ -52,8 +52,8 @@
       "efficiency": 0.0354,
       "batching": 9.6,
       "confidence": "measured",
-      "topology": "TP=1, independent replicas",
-      "notes": "Calibrated against an operator run: 59.59 tok/s single stream, 571-652 aggregate with 10 agents at 262K context, HBM-only, zero preemption. 748 GB total but only 252 GB is HBM3e - a model that spills into the LPDDR5X tier loses roughly an order of magnitude on decode.",
+      "topology": "TP=1, repliche indipendenti",
+      "notes": "Calibrato su un'esecuzione dell'operatore: 59.59 tok/s a stream singolo, 571-652 aggregato con 10 agenti a contesto 262K, solo HBM, zero preemption. 748 GB totali ma solo 252 GB sono HBM3e: un modello che sfora nel tier LPDDR5X perde circa un ordine di grandezza sul decode.",
       "sovereign": true
     },
     {
@@ -79,8 +79,8 @@
       "efficiency": 0.06,
       "batching": 6.0,
       "confidence": "estimated",
-      "topology": "TP=2 over PCIe Gen5",
-      "notes": "Price estimated: sub-8-GPU configurations are far less standardised than HGX. A community DeepSeek run measured 28.5% efficiency and 1.66x batching — not applied; the Qwen3.6 bf16 single-stream yardstick (~218 tok/s on one card) is consistent with keeping efficiency near 0.06 for the bandwidth-estimate path. Prefer matched profiles (deepseek-rtxpro-community, qwen36-rtxpro2-nvfp4) over the estimate when the model matches.",
+      "topology": "TP=2 su PCIe Gen5",
+      "notes": "Prezzo stimato: le configurazioni con meno di 8 GPU sono molto meno standardizzate di HGX. Un'esecuzione community DeepSeek ha misurato un'efficienza del 28.5% e un batching di 1.66x, non applicati: il riferimento Qwen3.6 bf16 a stream singolo (~218 tok/s su una scheda) è coerente con mantenere l'efficienza vicino a 0.06 per il percorso di stima della bandwidth. Preferisci i profili corrispondenti (deepseek-rtxpro-community, qwen36-rtxpro2-nvfp4) alla stima quando il modello corrisponde.",
       "sovereign": true
     },
     {
@@ -106,8 +106,8 @@
       "efficiency": 0.06,
       "batching": 6.0,
       "confidence": "estimated",
-      "topology": "TP=4 over PCIe Gen5",
-      "notes": "Sized on the model rather than the catalogue: 8 GPUs would leave three quarters of the memory unused. No NVLink, so all-reduce runs over PCIe - one reason TP=4 is preferable to TP=8.",
+      "topology": "TP=4 su PCIe Gen5",
+      "notes": "Dimensionato sul modello anziché sul catalogo: 8 GPU lascerebbero inutilizzati tre quarti della memoria. Nessun NVLink, quindi l'all-reduce gira su PCIe: uno dei motivi per cui TP=4 è preferibile a TP=8.",
       "sovereign": true
     },
     {
@@ -133,8 +133,8 @@
       "efficiency": 0.05,
       "batching": 6.0,
       "confidence": "estimated",
-      "topology": "TP=4 over NVLink",
-      "notes": "Hopper: no FP4 tensor cores, so weights double. Lead times reported at 30-50 weeks. Included to quantify the cost of buying the previous generation, not as a recommendation. The gptoss-h200-fp8 profile (derived from TRT-LLM H200 FP8 offline max-throughput) is far above the 0.05×6 estimate; efficiency/batching stay conservative for non-profile models because those tables are synthetic short-context peaks, not realistic traffic.",
+      "topology": "TP=4 su NVLink",
+      "notes": "Hopper: nessun tensor core FP4, quindi i pesi raddoppiano. Tempi di consegna dichiarati di 30-50 settimane. Inserito per quantificare il costo di acquistare la generazione precedente, non come raccomandazione. Il profilo gptoss-h200-fp8 (derived dal max-throughput offline TRT-LLM H200 FP8) è ben sopra la stima 0.05×6; efficienza e batching restano conservativi per i modelli senza profilo, perché quelle tabelle sono picchi sintetici a contesto breve, non traffico realistico.",
       "sovereign": true
     },
     {
@@ -160,8 +160,8 @@
       "efficiency": 0.05,
       "batching": 8.0,
       "confidence": "estimated",
-      "topology": "Single GPU, TP=1",
-      "notes": "288 GB on one GPU means no tensor parallelism at all. 1,400 W per GPU: air cooling is not viable, direct liquid cooling is mandatory, which is why infrastructure cost is more than double the other nodes. NVIDIA does not publish retail pricing - the ~$53k GPU figure is a market estimate. gptoss-b300-fp4 is derived from B200 TRT-LLM tables (B300 ≠ B200); leave efficiency at 0.05 for the estimate path and use the matched profile when sizing gpt-oss.",
+      "topology": "GPU singola, TP=1",
+      "notes": "288 GB su una GPU significano nessun tensor parallelism. 1,400 W per GPU: il raffreddamento ad aria non è praticabile, il raffreddamento liquido diretto è obbligatorio, ed è per questo che il costo dell'infrastruttura è più del doppio rispetto agli altri nodi. NVIDIA non pubblica prezzi al dettaglio: il dato di ~$53k per GPU è una stima di mercato. gptoss-b300-fp4 è derived dalle tabelle TRT-LLM B200 (B300 ≠ B200); lascia l'efficienza a 0.05 per il percorso di stima e usa il profilo corrispondente quando dimensioni gpt-oss.",
       "sovereign": true
     },
     {
@@ -187,8 +187,8 @@
       "efficiency": 0.05,
       "batching": 8.0,
       "confidence": "estimated",
-      "topology": "TP=4 / EP=4 over NVLink (NVIDIA Qwen3.5 deploy shape)",
-      "notes": "Multi-GPU B300 node matching NVIDIA's minimum validated footprint for Qwen3.5-397B-A17B NVFP4 (4× B200/B300/GB200/GB300). Memory and bandwidth are 4× the 1x B300 catalogue row; price/infra scaled from the single-GPU estimate (not a vendor quote). Direct liquid cooling mandatory. Prefer the matched Qwen3.5 profile when sizing that model.",
+      "topology": "TP=4 / EP=4 su NVLink (shape di deploy NVIDIA Qwen3.5)",
+      "notes": "Nodo B300 multi-GPU che corrisponde all'ingombro minimo validato da NVIDIA per Qwen3.5-397B-A17B NVFP4 (4× B200/B300/GB200/GB300). Memoria e banda sono 4× la riga di catalogo 1x B300; prezzo e infrastruttura sono scalati dalla stima a GPU singola (non è un preventivo del vendor). Raffreddamento liquido diretto obbligatorio. Preferisci il profilo Qwen3.5 corrispondente quando dimensioni quel modello.",
       "sovereign": true
     },
     {
@@ -211,8 +211,8 @@
       "efficiency": 0.05,
       "batching": 6.0,
       "confidence": "list-price",
-      "topology": "TP=4 over NVLink",
-      "notes": "h200-4-gpu: 900 GiB RAM, 94 vCPU, 12.5 TB disk, 20 Gbps. VAT excluded. GDPR, 99.99% SLA.",
+      "topology": "TP=4 su NVLink",
+      "notes": "h200-4-gpu: 900 GiB RAM, 94 vCPU, 12.5 TB di disco, 20 Gbps. IVA esclusa. GDPR, SLA 99.99%.",
       "sovereign": true
     },
     {
@@ -235,8 +235,8 @@
       "efficiency": 0.05,
       "batching": 8.0,
       "confidence": "aggregator",
-      "topology": "TP=8 over NVLink 6",
-      "notes": "The only Blackwell you can rent inside the EU today. Sold as an 8-GPU node only: for a model that needs 142 GB this is sixteen times the required capacity. Hourly figure derived from an aggregator (~$8.54/GPU-hour), not from Scaleway's published price list - verify before quoting.",
+      "topology": "TP=8 su NVLink 6",
+      "notes": "L'unico Blackwell che oggi puoi noleggiare all'interno dell'UE. Venduto solo come nodo a 8 GPU: per un modello che richiede 142 GB si tratta di sedici volte la capacità necessaria. Il valore orario deriva da un aggregatore (~$8.54/GPU-hour), non dal listino pubblicato di Scaleway: verificalo prima di presentare un preventivo.",
       "sovereign": true
     },
     {
@@ -260,7 +260,7 @@
       "batching": 6.0,
       "confidence": "list-price",
       "topology": "TP=4",
-      "notes": "NOT a compliant option under data-residency constraints. Included to size the sovereignty premium.",
+      "notes": "NON è un'opzione conforme ai vincoli di residenza dei dati. Inserito per dimensionare il premio di sovranità.",
       "sovereign": false
     },
     {
@@ -283,8 +283,8 @@
       "efficiency": 0.05,
       "batching": 8.0,
       "confidence": "list-price",
-      "topology": "Single GPU",
-      "notes": "NOT compliant under data-residency constraints. The cheapest configuration in either catalogue that hosts a 142 GB model comfortably - which is precisely the point about what Europe cannot rent yet.",
+      "topology": "GPU singola",
+      "notes": "NON conforme ai vincoli di residenza dei dati. La configurazione più economica in uno dei due cataloghi che ospita comodamente un modello da 142 GB: è proprio il punto su ciò che l'Europa non può ancora noleggiare.",
       "sovereign": false
     }
   ]

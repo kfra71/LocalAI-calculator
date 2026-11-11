@@ -29,27 +29,27 @@ const projectCopy = [
   readText("../index.html"),
 ].join("\n");
 const required = [
-  "Directional estimate, not a procurement quote",
-  "Comparability and eligibility",
-  "not guaranteed model quality",
-  "Cheapest eligible alternative",
-  "Rental cash-flow timing",
-  "changes payment timing, not undiscounted total commitment",
-  "Peak prefill",
-  "technical minimum",
-  "advisory and is not included in TCO",
+  "Stima direzionale, non un preventivo d'acquisto",
+  "Comparabilità ed eleggibilità",
+  "non garantisce la qualità del modello",
+  "Alternativa eleggibile più economica",
+  "Tempistica del flusso di cassa del noleggio",
+  "modifica la tempistica dei pagamenti, non l'impegno totale non scontato",
+  "Prefill di picco",
+  "minimo tecnico",
+  "consultivo e non è incluso nel TCO",
   "localai-tco.dinova.one",
-  "Author: Juxhin Radhima",
+  "Autore: Juxhin Radhima",
 ];
 // The retired brand and sponsor strings are assembled at runtime so that a repo-wide
 // grep for them stays clean; the guard itself is unchanged.
 const staleBrand = ["Bind" + "width", "get.shit" + "done.ai"];
 const forbidden = [
-  "community | Unverified report — recorded, not used in calculations",
-  "runs the same model under the same workload",
-  "support with a wear multiplier",
-  "Four-year total",
-  "four-year horizon",
+  "community | Segnalazione non verificata — registrata, non usata nei calcoli",
+  "esegue lo stesso modello sullo stesso carico di lavoro",
+  "supporto con un moltiplicatore di usura",
+  "Totale su quattro anni",
+  "orizzonte di quattro anni",
   ...staleBrand,
 ];
 
@@ -63,11 +63,11 @@ for (const text of forbidden) {
   else { fail++; console.log(`  FAIL affermazione obsoleta: ${text}`); }
 }
 checkProject("il copy di progetto dichiara il serving combinato",
-  projectCopy.includes("combined prefill/decode"));
+  projectCopy.includes("serving combinato prefill/decode"));
 checkProject("il copy di progetto dichiara l'ambito direzionale",
-  projectCopy.includes("directional sensitivity estimator"));
+  projectCopy.includes("stimatore di sensibilità direzionale"));
 checkProject("il copy di progetto identifica le prove di runtime fissate",
-  projectCopy.includes("Pinned model, hardware and runtime evidence"));
+  projectCopy.includes("Evidenze di modello, hardware e runtime fissati"));
 checkProject("la richiesta di preventivo porta alla pagina contatti di Dinova",
   RFQ_FORM_URL === "https://www.dinova.one/contatti/");
 checkProject("il riepilogo del preventivo non nomina più il modulo Google",

@@ -145,7 +145,7 @@ console.log("\n— MoE futuri sintetici dimensionati su una nuova SKU —");
   const outside = sizeOption(hw, st, wl, profiles);
   check("Un contesto lungo fa cadere il profilo", outside.profileId, null);
   truthy("Il contesto lungo spiega testedContext",
-    outside.warnings.some((w) => w.includes("tested only")));
+    outside.warnings.some((w) => w.includes("testato solo")));
 }
 
 console.log("\n— volume letto: dense vs MoE —");

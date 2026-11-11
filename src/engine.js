@@ -312,31 +312,31 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
   if (!derived.compatible) {
     warnings.push(
       derived.fellBack
-        ? `Fell back to ${derived.precision} but bytesPerParamByPrecision has no entry for it.`
-        : "Selected checkpoint precision is unsupported on this hardware."
+        ? `Ripiego a ${derived.precision} ma bytesPerParamByPrecision non ha una voce corrispondente.`
+        : "La precisione del checkpoint selezionato non è supportata su questo hardware."
     );
   } else if (derived.fellBack) {
-    warnings.push(`Default checkpoint unavailable here; using ${derived.precision}.`);
+    warnings.push(`Checkpoint predefinito non disponibile qui; si usa ${derived.precision}.`);
   }
   if (candidateProfile && !profile) {
     warnings.push(
-      `Matched profile ${candidateProfile.id} was tested only to ${candidateProfile.testedContext} tokens; using an estimate for this context.`
+      `Il profilo corrispondente ${candidateProfile.id} è stato testato solo fino a ${candidateProfile.testedContext} token; per questo contesto si usa una stima.`
     );
   }
   if (!profile) {
     if (sibling && productionFactor > catalogueFactor) {
       warnings.push(
-        `No exact profile; aggregate uses production factor ${productionFactor.toFixed(2)} ` +
-        `transferred from ${sibling.profileId} on ${sibling.hardwareId} ` +
-        `(×${sibling.haircut} cross-SKU haircut${sibling.samePrecision ? "" : ", cross-precision"}). ` +
-        `Assumes continuous-batching serving (vLLM-class), not single-stream chat.`
+        `Nessun profilo esatto; il decode aggregato usa il fattore di produzione ${productionFactor.toFixed(2)} ` +
+        `trasferito da ${sibling.profileId} su ${sibling.hardwareId} ` +
+        `(×${sibling.haircut} haircut cross-SKU${sibling.samePrecision ? "" : ", cross-precision"}). ` +
+        `Si assume serving continuous-batching (classe vLLM), non chat a stream singolo.`
       );
     } else {
-      warnings.push("No exact model/hardware/runtime profile; using a bandwidth estimate.");
+      warnings.push("Nessun profilo esatto modello/hardware/runtime; si usa una stima di bandwidth.");
     }
   }
   if (profile?.prefillConfidence && profile.prefillConfidence !== profile.confidence) {
-    warnings.push(`Prefill evidence is ${profile.prefillConfidence}; decode evidence is ${profile.confidence}.`);
+    warnings.push(`L'evidenza di prefill è ${profile.prefillConfidence}; l'evidenza di decode è ${profile.confidence}.`);
   }
 
   const unitsKv = fits ? ceil(safeDiv(wl.kvRequired, kvTokens)) : Infinity;
@@ -610,68 +610,68 @@ export function domainCheck(hw, qty) {
 export function validateState(st) {
   const errors = [], warnings = [];
   const positive = [
-    ["Working days", st.org?.workDays],
-    ["Working hours", st.org?.workHours],
-    ["Model parameters", st.model?.totalB],
-    ["Active parameters", st.model?.activeB],
+    ["Giorni di lavoro", st.org?.workDays],
+    ["Ore di lavoro", st.org?.workHours],
+    ["Parametri del modello", st.model?.totalB],
+    ["Parametri attivi", st.model?.activeB],
     ["KV per token", st.model?.kvKbPerToken],
-    ["Speculative tokens", st.model?.specTokens],
-    ["Horizon", st.econ?.years],
-    ["Staff working hours", st.staff?.hoursYear],
+    ["Token speculativi", st.model?.specTokens],
+    ["Orizzonte", st.econ?.years],
+    ["Ore di lavoro del personale", st.staff?.hoursYear],
   ];
   for (const [label, value] of positive) {
-    if (!finitePositive(value)) errors.push(`${label} must be a positive finite number.`);
+    if (!finitePositive(value)) errors.push(`${label} deve essere un numero positivo e finito.`);
   }
   if ((st.workload?.context ?? 0) > (st.model?.maxContext ?? Infinity)) {
-    errors.push("Interactive context exceeds the model maximum context.");
+    errors.push("Il contesto interattivo supera il contesto massimo del modello.");
   }
   if ((st.agents?.context ?? 0) > (st.model?.maxContext ?? Infinity)) {
-    errors.push("Agent context exceeds the model maximum context.");
+    errors.push("Il contesto degli agenti supera il contesto massimo del modello.");
   }
   if ((st.model?.activeB ?? 0) > (st.model?.totalB ?? 0)) {
-    errors.push("Active parameters cannot exceed total parameters.");
+    errors.push("I parametri attivi non possono superare i parametri totali.");
   }
   const nonNegative = [
-    ["Developers", st.org?.devs], ["Administrative users", st.org?.admin],
-    ["Marketing users", st.org?.marketing], ["Agent count", st.agents?.count],
-    ["Interactive context", st.workload?.context], ["Agent context", st.agents?.context],
-    ["Input tokens", st.workload?.devIn], ["Output tokens", st.workload?.devOut],
-    ["Gross salary", st.staff?.ral], ["Freelance rate", st.staff?.freelanceRate],
-    ["Electricity price", st.econ?.kwhPrice],
+    ["Sviluppatori", st.org?.devs], ["Utenti amministrativi", st.org?.admin],
+    ["Utenti marketing", st.org?.marketing], ["Numero di agenti", st.agents?.count],
+    ["Contesto interattivo", st.workload?.context], ["Contesto degli agenti", st.agents?.context],
+    ["Token di input", st.workload?.devIn], ["Token di output", st.workload?.devOut],
+    ["Retribuzione annua lorda", st.staff?.ral], ["Tariffa freelance", st.staff?.freelanceRate],
+    ["Prezzo dell'elettricità", st.econ?.kwhPrice],
   ];
   for (const [label, value] of nonNegative) {
-    if (!Number.isFinite(value) || value < 0) errors.push(`${label} cannot be negative or non-finite.`);
+    if (!Number.isFinite(value) || value < 0) errors.push(`${label} non può essere negativo o non finito.`);
   }
   const fractions = [
-    ["Interactive cache hit rate", st.workload?.caching],
-    ["Agent cache hit rate", st.agents?.caching],
-    ["Freelance share", st.staff?.freelanceShare],
-    ["Rental discount", st.rental?.reserveDiscount],
-    ["Rental upfront share", st.rental?.upfrontShare],
+    ["Tasso di hit della cache interattiva", st.workload?.caching],
+    ["Tasso di hit della cache degli agenti", st.agents?.caching],
+    ["Quota freelance", st.staff?.freelanceShare],
+    ["Sconto sul noleggio", st.rental?.reserveDiscount],
+    ["Quota iniziale del noleggio", st.rental?.upfrontShare],
   ];
   for (const [label, value] of fractions) {
-    if (!Number.isFinite(value) || value < 0 || value > 1) errors.push(`${label} must be between zero and one.`);
+    if (!Number.isFinite(value) || value < 0 || value > 1) errors.push(`${label} deve essere compreso tra zero e uno.`);
   }
   if ((st.org?.workHours ?? 0) > 24 || (st.agents?.hoursDay ?? 0) > 24) {
-    errors.push("Daily active hours cannot exceed 24.");
+    errors.push("Le ore attive giornaliere non possono superare 24.");
   }
   if ((st.org?.workDays ?? 0) > 366 || (st.agents?.daysYear ?? 0) > 366) {
-    errors.push("Annual active days cannot exceed 366.");
+    errors.push("I giorni attivi annuali non possono superare 366.");
   }
   for (const hw of st.hardware || []) {
     if (!finitePositive(hw.memGb) || !finitePositive(hw.bandwidth) || !finitePositive(hw.gpus)) {
-      errors.push(`${hw.label || hw.id || "Hardware"} has invalid memory, bandwidth, or GPU count.`);
+      errors.push(`${hw.label || hw.id || "Hardware"} ha memoria, bandwidth o numero di GPU non validi.`);
     }
   }
   const target = st.resilience?.targetUtilization ?? 1;
   if (target <= 0 || target > 1) {
-    errors.push("Target utilisation must be greater than zero and at most one.");
+    errors.push("L'utilizzo target deve essere maggiore di zero e al massimo uno.");
   }
   if ((st.workload?.peakManual ?? 0) === 0) {
-    warnings.push("Peak demand is formula-derived; replace it with measured telemetry before procurement.");
+    warnings.push("La domanda di picco è derivata dalla formula; sostituiscila con telemetria misurata prima dell'acquisto.");
   }
   if (st.model?.kvKbRange?.status === "unresolved") {
-    warnings.push("The selected model has unresolved KV-per-token measurements.");
+    warnings.push("Il modello selezionato ha misurazioni KV per token non risolte.");
   }
   return { valid: errors.length === 0, errors, warnings };
 }
@@ -697,25 +697,25 @@ function optionEligibility(hw, st, sizing, cost) {
   // them leaves the rent comparison empty when EU catalogue options do not fit.
   if (hw.kind === "rent") {
     if (req.sovereignOnly && hw.sovereign !== true) {
-      referenceNotes.push("Outside the sovereign preference — shown for reference.");
+      referenceNotes.push("Fuori dalla preferenza di sovranità — mostrato solo per riferimento.");
     }
     if (req.regions?.length && hw.region) {
       const regionMatches = req.regions.some((region) => regionsOverlap(region, hw.region));
       if (!regionMatches) {
-        referenceNotes.push("Provider region is outside the preferred regions — shown for reference.");
+        referenceNotes.push("La regione del provider è fuori dalle regioni preferite — mostrata solo per riferimento.");
       }
     }
   } else if (req.sovereignOnly && hw.kind !== "own" && hw.sovereign !== true) {
-    reasons.push("Not eligible under the sovereign-only requirement.");
+    reasons.push("Non eleggibile con il requisito di sola sovranità.");
   }
   if (req.requireEquivalentCapability && hw.equivalentCapability === false) {
-    reasons.push("Equivalent model capability has not been established.");
+    reasons.push("Non è stata verificata una capacità di modello equivalente.");
   }
   const minimum = CONFIDENCE_RANK[req.minimumConfidence] ?? 0;
   const actual = CONFIDENCE_RANK[sizing.profileConfidence || hw.confidence] ?? 0;
-  if (actual < minimum) reasons.push("Evidence confidence is below the scenario minimum.");
-  if (!sizing.fits) reasons.push("The model does not fit or the deployment is incompatible.");
-  if (cost.underProvisioned) reasons.push("Manual quantity is below the conservative production recommendation.");
+  if (actual < minimum) reasons.push("Il livello di confidenza dell'evidenza è inferiore al minimo dello scenario.");
+  if (!sizing.fits) reasons.push("Il modello non entra o il deployment è incompatibile.");
+  if (cost.underProvisioned) reasons.push("La quantità manuale è inferiore alla raccomandazione conservativa di produzione.");
   return {
     eligible: reasons.length === 0,
     reasons,
@@ -763,12 +763,12 @@ export function compute(st, profiles = []) {
     hw: {
       id: "subscriptions",
       kind: "subscription",
-      label: "Subscriptions + per-token API",
+      label: "Abbonamenti + API per token",
       class: "service",
       sovereign: false,
       equivalentCapability: false,
       notes:
-        "Premium plan for developers, base plan for occasional users, per-token API for autonomous agents. Closed models, servers typically outside the EU, quotas that intensive agentic users exceed.",
+        "Piano premium per sviluppatori, piano base per utenti occasionali, API per token per agenti autonomi. Modelli chiusi, server tipicamente fuori dall'UE, quote che gli utenti agentici intensi superano.",
       confidence: "list-price",
     },
     sizing: {
@@ -904,18 +904,18 @@ export function scoreProspect(p, sectors, st, perUserYear) {
   const economics =
     perUserYear < 1500 ? 25 : perUserYear < 3000 ? 18 : perUserYear < 5000 ? 10 : 0;
   const parts = [
-    { label: "Sector governance driver", value: sector.driver, max: 40 },
-    { label: "Economics per user", value: economics, max: 25 },
-    { label: "Legal already blocked a cloud pilot", value: p.pilotBlocked ? 15 : 0, max: 15 },
-    { label: "Server room and staff already in place", value: p.hasServerRoom ? 10 : 0, max: 10 },
-    { label: "Files patents", value: p.filesPatents ? 10 : 0, max: 10 },
-    { label: "Hyperscaler framework agreement", value: p.hyperscalerLock ? -25 : 0, max: 0 },
-    { label: "Outside the size band", value: p.aiUsers < 40 ? -20 : 0, max: 0 },
+    { label: "Fattore di governance del settore", value: sector.driver, max: 40 },
+    { label: "Economia per utente", value: economics, max: 25 },
+    { label: "Il legale ha già bloccato una sperimentazione cloud", value: p.pilotBlocked ? 15 : 0, max: 15 },
+    { label: "Sala server e personale già predisposti", value: p.hasServerRoom ? 10 : 0, max: 10 },
+    { label: "Brevetti depositati", value: p.filesPatents ? 10 : 0, max: 10 },
+    { label: "Accordo di framework con un hyperscaler", value: p.hyperscalerLock ? -25 : 0, max: 0 },
+    { label: "Fuori dalla fascia di dimensionamento", value: p.aiUsers < 40 ? -20 : 0, max: 0 },
   ];
   const total = Math.max(0, parts.reduce((a, b) => a + b.value, 0));
   const verdict =
-    total >= 70 ? "High priority" :
-    total >= 45 ? "Worth cultivating" :
-    total >= 25 ? "Low priority" : "Do not chase";
+    total >= 70 ? "Priorità alta" :
+    total >= 45 ? "Da coltivare" :
+    total >= 25 ? "Priorità bassa" : "Da non inseguire";
   return { parts, total, verdict };
 }

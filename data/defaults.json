@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/defaults.schema.json",
-  "note": "Starting values. Everything here is editable in the UI; this file only sets where you begin.",
+  "note": "Valori iniziali. Tutto qui è modificabile nell'interfaccia; questo file imposta solo il punto di partenza.",
 
   "org": { "devs": 20, "marketing": 10, "admin": 20, "workDays": 220, "workHours": 8 },
 
@@ -123,35 +123,35 @@
   },
 
   "subscriptionRefs": [
-    { "label": "Cursor / code plan", "price": 200, "unit": "$/seat/month", "note": "Intensive agentic coding seat (Cursor Ultra-class)" },
+    { "label": "Cursor / code plan", "price": 200, "unit": "$/seat/month", "note": "Posto di coding agentico intensivo (classe Cursor Ultra)" },
     { "label": "Gemini Enterprise Business", "price": 21, "unit": "$/seat/month", "note": "Standard 30, Plus 50" },
     { "label": "Microsoft 365 Copilot", "price": 30, "unit": "$/seat/month", "note": "" },
-    { "label": "Workspace Business Standard", "price": 14, "unit": "$/seat/month", "note": "Gemini included, for occasional users" },
-    { "label": "Gemini 3.6 Flash API", "price": 1.50, "unit": "$/1M in", "note": "7.50 out, 0.15 cached, 1.00/1M/hour cache storage" },
-    { "label": "Nano Banana Pro image", "price": 0.134, "unit": "$/image", "note": "1K-2K; 0.24 at 4K" },
+    { "label": "Workspace Business Standard", "price": 14, "unit": "$/seat/month", "note": "Gemini incluso, per utenti occasionali" },
+    { "label": "Gemini 3.6 Flash API", "price": 1.50, "unit": "$/1M in", "note": "7.50 out, 0.15 cached, 1.00/1M/hour per lo storage della cache" },
+    { "label": "Nano Banana Pro image", "price": 0.134, "unit": "$/image", "note": "1K-2K; 0.24 a 4K" },
     { "label": "Veo 3.1 Lite video", "price": 0.05, "unit": "$/second", "note": "720p; Fast 0.10, Standard 0.40" }
   ],
 
   "sectors": [
-    { "id": 1, "name": "Defence, space, aerospace supply chain", "driver": 40, "typicalSize": "100-500",
-      "note": "Explicitly inside national cyber-security perimeters in several EU states. Contractual clauses that forbid data leaving the perimeter. Target the subcontractors, not the prime contractors." },
-    { "id": 2, "name": "Precision mechanics, automation, packaging", "driver": 25, "typicalSize": "150-600",
-      "note": "The moat is entirely process know-how and unpublished CAD. Most underserved segment." },
-    { "id": 3, "name": "Pharma and biotech R&D", "driver": 30, "typicalSize": "200-800",
-      "note": "Pre-patent compounds and clinical data. Long sales cycles, solid budgets." },
-    { "id": 4, "name": "Legal and industrial property", "driver": 35, "typicalSize": "20-80",
-      "note": "Strongest driver of all - disclosure before filing destroys novelty - but almost always below the size floor. Works as a consortium or managed multi-tenant service." },
-    { "id": 5, "name": "Energy and utilities", "driver": 35, "typicalSize": "200-2000",
-      "note": "Often too large; tends toward framework agreements with sovereign clouds." },
-    { "id": 6, "name": "Banking and insurance", "driver": 30, "typicalSize": "500+",
-      "note": "Strong driver, size usually beyond the band. Exception: cooperative banks and niche asset managers." },
-    { "id": 7, "name": "Private healthcare and diagnostics", "driver": 30, "typicalSize": "200-800",
-      "note": "Health data. Avoid public sector: slow procurement, unpredictable budgets." },
-    { "id": 8, "name": "B2B software and SaaS", "driver": 15, "typicalSize": "50-400",
-      "note": "Weak driver unless their enterprise customers impose clauses. They can do the maths and will pick cloud." },
-    { "id": 9, "name": "Professional services", "driver": 10, "typicalSize": "100-500",
-      "note": "Driver almost absent except on critical-infrastructure contracts." },
-    { "id": 10, "name": "Other / commodity", "driver": 0, "typicalSize": "-",
-      "note": "No governance driver. The comparison is purely economic and cloud wins." }
+    { "id": 1, "name": "Difesa, spazio, catena di fornitura aerospaziale", "driver": 40, "typicalSize": "100-500",
+      "note": "Esplicitamente dentro i perimetri nazionali di cybersicurezza in diversi stati UE. Clausole contrattuali che vietano che i dati lascino il perimetro. Punta ai subappaltatori, non agli appaltatori principali." },
+    { "id": 2, "name": "Meccanica di precisione, automazione, packaging", "driver": 25, "typicalSize": "150-600",
+      "note": "Il fossato competitivo è interamente fatto di know-how di processo e CAD non pubblicati. Il segmento più sotto servito." },
+    { "id": 3, "name": "R&D farmaceutico e biotecnologico", "driver": 30, "typicalSize": "200-800",
+      "note": "Composti pre-brevetto e dati clinici. Cicli di vendita lunghi, budget solidi." },
+    { "id": 4, "name": "Proprietà legale e industriale", "driver": 35, "typicalSize": "20-80",
+      "note": "Il driver più forte in assoluto: la divulgazione prima del deposito distrugge la novità, ma quasi sempre è sotto la soglia di dimensione. Funziona come consorzio o come servizio multi-tenant gestito." },
+    { "id": 5, "name": "Energia e utility", "driver": 35, "typicalSize": "200-2000",
+      "note": "Spesso troppo grandi; tendono verso accordi di framework con cloud sovrani." },
+    { "id": 6, "name": "Banca e assicurazioni", "driver": 30, "typicalSize": "500+",
+      "note": "Driver forte, dimensione di solito oltre la fascia. Eccezione: banche cooperative e gestori di asset di nicchia." },
+    { "id": 7, "name": "Sanità privata e diagnostica", "driver": 30, "typicalSize": "200-800",
+      "note": "Dati sanitari. Evita il settore pubblico: acquisti lenti, budget imprevedibili." },
+    { "id": 8, "name": "Software B2B e SaaS", "driver": 15, "typicalSize": "50-400",
+      "note": "Driver debole, a meno che i loro clienti enterprise non impongano clausole. Sanno fare i conti e sceglieranno il cloud." },
+    { "id": 9, "name": "Servizi professionali", "driver": 10, "typicalSize": "100-500",
+      "note": "Driver quasi assente, tranne che nei contratti su infrastrutture critiche." },
+    { "id": 10, "name": "Altro / commodity", "driver": 0, "typicalSize": "-",
+      "note": "Nessun driver di governance. Il confronto è puramente economico e vince il cloud." }
   ]
 }

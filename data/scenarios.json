@@ -1,14 +1,14 @@
 {
   "$schema": "./schema/scenarios.schema.json",
-  "note": "Guided-setup presets. Each patch replaces sizing-relevant fields (org, workload, agents, mgmt, and selected resilience/requirements). Economics, staff rates, hardware toggles, and the selected model are left alone. Developer/agent token rates and management quotas are shared measured defaults; guided setup resets management cost to zero.",
+  "note": "Preset della configurazione guidata. Ogni patch sostituisce i campi rilevanti per il dimensionamento (org, workload, agents, mgmt e i campi selezionati di resilience/requirements). Economia, tariffe del personale, toggle dell'hardware e modello selezionato restano invariati. I tassi di token di sviluppatori/agenti e le quote di gestione sono valori misurati condivisi; la configurazione guidata azzera i costi di gestione.",
   "scenarios": [
     {
       "id": "solo-power-user",
       "group": "Solo",
-      "label": "Solo power-user developer",
-      "blurb": "One heavy interactive coder on measured agentic-coding token rates — high daily input from tools and context, modest output.",
+      "label": "Sviluppatore solo power-user",
+      "blurb": "Uno sviluppatore interattivo assiduo sui tassi di token misurati del coding agentico — input giornaliero elevato da strumenti e contesto, output contenuto.",
       "patch": {
-        "scenarioName": "Solo power-user developer",
+        "scenarioName": "Sviluppatore power-user singolo",
         "org": {
           "devs": 1,
           "marketing": 0,
@@ -70,10 +70,10 @@
     {
       "id": "solo-ai-company",
       "group": "Solo",
-      "label": "Solo power-user + 3 agents (AI company)",
-      "blurb": "One founder-developer plus three always-on agents for an AI product company, on measured agentic token rates (16h agent day).",
+      "label": "Solo power-user + 3 agenti (azienda AI)",
+      "blurb": "Un founder-developer più tre agenti sempre attivi per un'azienda di prodotti AI, sui tassi di token agentici misurati (giornata agente di 16h).",
       "patch": {
-        "scenarioName": "Solo AI company — 1 developer + 3 agents",
+        "scenarioName": "Azienda AI — 1 sviluppatore + 3 agenti",
         "org": {
           "devs": 1,
           "marketing": 0,
@@ -134,11 +134,11 @@
     },
     {
       "id": "sysint-10",
-      "group": "System integration",
-      "label": "10 — System integration",
-      "blurb": "Small SI boutique. Mostly developers, coding-heavy interactive load, no autonomous agents.",
+      "group": "Integrazione di sistemi",
+      "label": "10 — Integrazione di sistemi",
+      "blurb": "Piccola boutique di integrazione di sistemi. Prevalentemente sviluppatori, carico interattivo pesante sul coding, nessun agente autonomo.",
       "patch": {
-        "scenarioName": "System integration — 10 AI users",
+        "scenarioName": "Integrazione di sistemi — 10 utenti AI",
         "org": {
           "devs": 7,
           "marketing": 1,
@@ -201,11 +201,11 @@
     },
     {
       "id": "sysint-40",
-      "group": "System integration",
-      "label": "40 — System integration",
-      "blurb": "Technical office of an SME SI. Coding-heavy, shared tooling context, still interactive-only.",
+      "group": "Integrazione di sistemi",
+      "label": "40 — Integrazione di sistemi",
+      "blurb": "Ufficio tecnico di una PMI di integrazione di sistemi. Carico pesante sul coding, contesto condiviso degli strumenti, ancora solo interattivo.",
       "patch": {
-        "scenarioName": "System integration — 40 AI users",
+        "scenarioName": "Integrazione di sistemi — 40 utenti AI",
         "org": {
           "devs": 28,
           "marketing": 4,
@@ -268,11 +268,11 @@
     },
     {
       "id": "sysint-100",
-      "group": "System integration",
-      "label": "100 — System integration",
-      "blurb": "Multi-project SI company. Developer-majority mix with modest shared-prefix caching.",
+      "group": "Integrazione di sistemi",
+      "label": "100 — Integrazione di sistemi",
+      "blurb": "Azienda di integrazione di sistemi su più progetti. Composizione a prevalenza di sviluppatori, con caching dei prefissi condivisi modesto.",
       "patch": {
-        "scenarioName": "System integration — 100 AI users",
+        "scenarioName": "Integrazione di sistemi — 100 utenti AI",
         "org": {
           "devs": 70,
           "marketing": 10,
@@ -335,11 +335,11 @@
     },
     {
       "id": "sysint-200",
-      "group": "System integration",
-      "label": "200 — System integration",
-      "blurb": "Large SI / multi-site delivery. Slightly lower per-head intensity; N+1 resilience on.",
+      "group": "Integrazione di sistemi",
+      "label": "200 — Integrazione di sistemi",
+      "blurb": "Integrazione di sistemi su larga scala / delivery su più sedi. Intensità per testa leggermente inferiore; resilienza N+1 attiva.",
       "patch": {
-        "scenarioName": "System integration — 200 AI users",
+        "scenarioName": "Integrazione di sistemi — 200 utenti AI",
         "org": {
           "devs": 140,
           "marketing": 20,
@@ -402,11 +402,11 @@
     },
     {
       "id": "mfg-10",
-      "group": "Manufacturing",
-      "label": "10 — Manufacturing",
-      "blurb": "Small precision shop. More admin/ops than pure developers; longer document and CAD-adjacent context.",
+      "group": "Manifattura",
+      "label": "10 — Manifattura",
+      "blurb": "Piccola officina di precisione. Più amministrativi e operativi che sviluppatori puri; contesto più lungo su documenti e attività adiacenti al CAD.",
       "patch": {
-        "scenarioName": "Manufacturing — 10 AI users",
+        "scenarioName": "Manifattura — 10 utenti AI",
         "org": {
           "devs": 4,
           "marketing": 1,
@@ -469,11 +469,11 @@
     },
     {
       "id": "mfg-40",
-      "group": "Manufacturing",
-      "label": "40 — Manufacturing",
-      "blurb": "SME plant with in-house engineering. Process know-how in the prompt path; moderate coding intensity.",
+      "group": "Manifattura",
+      "label": "40 — Manifattura",
+      "blurb": "Stabilimento di PMI con ingegneria interna. Know-how di processo nel percorso del prompt; intensità di coding moderata.",
       "patch": {
-        "scenarioName": "Manufacturing — 40 AI users",
+        "scenarioName": "Manifattura — 40 utenti AI",
         "org": {
           "devs": 16,
           "marketing": 4,
@@ -536,11 +536,11 @@
     },
     {
       "id": "mfg-100",
-      "group": "Manufacturing",
-      "label": "100 — Manufacturing",
-      "blurb": "Multi-cell manufacturing company. Admin-heavy AI use with long document context.",
+      "group": "Manifattura",
+      "label": "100 — Manifattura",
+      "blurb": "Azienda manifatturiera multi-cellula. Uso dell'AI sbilanciato verso l'amministrativo, con contesto documentale lungo.",
       "patch": {
-        "scenarioName": "Manufacturing — 100 AI users",
+        "scenarioName": "Manifattura — 100 utenti AI",
         "org": {
           "devs": 40,
           "marketing": 10,
@@ -603,11 +603,11 @@
     },
     {
       "id": "mfg-200",
-      "group": "Manufacturing",
-      "label": "200 — Manufacturing",
-      "blurb": "Industrial group scale. Lower per-head burstiness; keep residency preference labelled.",
+      "group": "Manifattura",
+      "label": "200 — Manifattura",
+      "blurb": "Dimensione di gruppo industriale. Burstiness per testa inferiore; mantieni etichettata la preferenza di residenza.",
       "patch": {
-        "scenarioName": "Manufacturing — 200 AI users",
+        "scenarioName": "Manifattura — 200 utenti AI",
         "org": {
           "devs": 80,
           "marketing": 20,
@@ -670,11 +670,11 @@
     },
     {
       "id": "finance-10",
-      "group": "Finance",
-      "label": "10 — Finance",
-      "blurb": "Small cooperative bank or niche asset desk. Document-heavy context, high cache hits, residency preference on.",
+      "group": "Finanza",
+      "label": "10 — Finanza",
+      "blurb": "Piccola banca cooperativa o desk di asset di nicchia. Contesto pesante di documenti, molti hit della cache, preferenza di residenza attiva.",
       "patch": {
-        "scenarioName": "Finance — 10 AI users",
+        "scenarioName": "Finanza — 10 utenti AI",
         "org": {
           "devs": 3,
           "marketing": 1,
@@ -737,11 +737,11 @@
     },
     {
       "id": "finance-40",
-      "group": "Finance",
-      "label": "40 — Finance",
-      "blurb": "Regional finance office. Long policy and research contexts with strong prefix reuse.",
+      "group": "Finanza",
+      "label": "40 — Finanza",
+      "blurb": "Ufficio finanziario regionale. Contesti lunghi di policy e ricerca con forte riuso dei prefissi.",
       "patch": {
-        "scenarioName": "Finance — 40 AI users",
+        "scenarioName": "Finanza — 40 utenti AI",
         "org": {
           "devs": 12,
           "marketing": 4,
@@ -804,11 +804,11 @@
     },
     {
       "id": "finance-100",
-      "group": "Finance",
-      "label": "100 — Finance",
-      "blurb": "Mid-size finance org. Admin-majority AI use, document context, residency preference labelled.",
+      "group": "Finanza",
+      "label": "100 — Finanza",
+      "blurb": "Organizzazione finanziaria di media grandezza. Uso dell'AI a prevalenza amministrativa, contesto documentale, preferenza di residenza etichettata.",
       "patch": {
-        "scenarioName": "Finance — 100 AI users",
+        "scenarioName": "Finanza — 100 utenti AI",
         "org": {
           "devs": 30,
           "marketing": 10,
@@ -871,11 +871,11 @@
     },
     {
       "id": "finance-200",
-      "group": "Finance",
-      "label": "200 — Finance",
-      "blurb": "Large finance group desk. Lower burstiness, high cache, sovereign preference kept as reference labels.",
+      "group": "Finanza",
+      "label": "200 — Finanza",
+      "blurb": "Desk di un grande gruppo finanziario. Burstiness inferiore, alta cache, preferenza sovrana mantenuta come etichette di riferimento.",
       "patch": {
-        "scenarioName": "Finance — 200 AI users",
+        "scenarioName": "Finanza — 200 utenti AI",
         "org": {
           "devs": 60,
           "marketing": 20,

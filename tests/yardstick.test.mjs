@@ -88,7 +88,7 @@ console.log("\n— contesti predefiniti di LocalAI-TCO rispetto al testedContext
   const s = sizeOption(b300, st, workload(st), profiles);
   check("gpt-oss ricade al contesto persone di default (100k > 32k)", s.profileId, null);
   truthy("Il fallback avvisa su testedContext",
-    s.warnings.some((w) => w.includes("tested only")));
+    s.warnings.some((w) => w.includes("testato solo")));
 
   // La sola finestra idle degli agenti non deve invalidare un profilo.
   const short = stateFor("gpt-oss-120b", 16000);

@@ -4,6 +4,8 @@
  * The app copies a scenario summary to the clipboard, then opens the contact
  * page so the requester can paste it into the message field of the form.
  */
+import { bindingLabel, kindLabel } from "./labels.js";
+
 export const RFQ_FORM_URL = "https://www.dinova.one/contatti/";
 
 const nf = (n, d = 0) =>
@@ -18,49 +20,49 @@ export function isRfqConfigured() {
 export function buildRfqSummary(st, r, option = null) {
   const target = option || r.bestOwn;
   const lines = [
-    `LocalAI-TCO RFQ summary — ${new Date().toISOString().slice(0, 10)}`,
-    `Scenario: ${st.scenarioName || "Untitled"}`,
+    `Riepilogo richiesta di preventivo LocalAI-TCO — ${new Date().toISOString().slice(0, 10)}`,
+    `Scenario: ${st.scenarioName || "Scenario senza nome"}`,
     "",
-    "— Configuration of interest —",
+    "— Configurazione di interesse —",
     target
       ? [
-          `Option: ${target.hw.label}`,
-          `Kind: ${target.kind}`,
-          `Eligible: ${target.eligibility?.eligible ? "yes" : "no"}`,
-          `Eligibility notes: ${target.eligibility?.reasons?.join(" ") || "none"}`,
-          `Units: technical minimum ${nf(target.sizing?.minimumUnits)}, recommended ${nf(target.sizing?.recommendedUnits)}, quoted ${nf(target.cost.qty)}`,
-          `Base binding: ${target.sizing?.binding ?? "—"} · Conservative: ${target.sizing?.recommendationBinding || target.sizing?.binding || "—"}`,
-          `Precision / profile: ${target.sizing?.precision || "—"} / ${target.sizing?.profileId || "estimated fallback"}`,
-          `Profile confidence: ${target.sizing?.profileConfidence || target.hw.confidence || "unknown"}`,
-          `${st.econ.years}-year total (model): ${target.sizing?.fits ? eur(target.cost.total) : "—"}`,
-          `€/1M tokens: ${target.sizing?.fits && target.perMToken != null ? target.perMToken.toFixed(3) : "—"}`,
-          target.hw.provider ? `Provider: ${target.hw.provider}` : null,
-          target.hw.topology ? `Topology: ${target.hw.topology}` : null,
+          `Opzione: ${target.hw.label}`,
+          `Tipo: ${kindLabel(target.kind)}`,
+          `Eleggibile: ${target.eligibility?.eligible ? "sì" : "no"}`,
+          `Note di eleggibilità: ${target.eligibility?.reasons?.join(" ") || "nessuna"}`,
+          `Unità: minimo tecnico ${nf(target.sizing?.minimumUnits)}, raccomandata ${nf(target.sizing?.recommendedUnits)}, quotata ${nf(target.cost.qty)}`,
+          `Vincolo base: ${bindingLabel(target.sizing?.binding)} · Conservativo: ${bindingLabel(target.sizing?.recommendationBinding || target.sizing?.binding)}`,
+          `Precisione / profilo: ${target.sizing?.precision || "—"} / ${target.sizing?.profileId || "stima di fallback"}`,
+          `Confidenza del profilo: ${target.sizing?.profileConfidence || target.hw.confidence || "sconosciuto"}`,
+          `Totale su ${st.econ.years} anni (modello): ${target.sizing?.fits ? eur(target.cost.total) : "—"}`,
+          `€/1M token: ${target.sizing?.fits && target.perMToken != null ? target.perMToken.toFixed(3) : "—"}`,
+          target.hw.provider ? `Fornitore: ${target.hw.provider}` : null,
+          target.hw.topology ? `Topologia: ${target.hw.topology}` : null,
         ]
           .filter(Boolean)
           .join("\n")
-      : "No fitting owned configuration in this scenario.",
+      : "Nessuna configurazione di proprietà adatta in questo scenario.",
     "",
-    "— Workload —",
-    `Model: ${st.model.name} (${st.model.quantLabel || "—"})`,
-    `Headcount: ${nf(r.headcount)} (devs ${nf(st.org.devs)}, marketing ${nf(st.org.marketing)}, admin ${nf(st.org.admin)})`,
-    `Autonomous agents: ${nf(st.agents.count)}`,
-    `Tokens / year: ${nf(r.workload.totalTokens / 1e9, 1)} B`,
-    `Peak decode: ${nf(r.workload.decodePeak)} tok/s`,
-    `Peak prefill: ${nf(r.workload.prefillPeak)} tok/s`,
-    `Concurrent sessions: ${nf(r.workload.sessionsTotal, 1)}`,
-    `Resident KV required: ${nf(r.workload.kvRequired)} tokens`,
+    "— Carico di lavoro —",
+    `Modello: ${st.model.name} (${st.model.quantLabel || "—"})`,
+    `Organico: ${nf(r.headcount)} (sviluppatori ${nf(st.org.devs)}, marketing ${nf(st.org.marketing)}, admin ${nf(st.org.admin)})`,
+    `Agenti autonomi: ${nf(st.agents.count)}`,
+    `Token / anno: ${nf(r.workload.totalTokens / 1e9, 1)} B`,
+    `Decode di picco: ${nf(r.workload.decodePeak)} tok/s`,
+    `Prefill di picco: ${nf(r.workload.prefillPeak)} tok/s`,
+    `Sessioni concorrenti: ${nf(r.workload.sessionsTotal, 1)}`,
+    `KV residenti richiesti: ${nf(r.workload.kvRequired)} token`,
     "",
-    "— Comparison snapshot —",
-    `Cheapest owned: ${r.bestOwn ? `${r.bestOwn.hw.label} — ${eur(r.bestOwn.cost.total)}` : "—"}`,
-    `Cheapest eligible alternative: ${r.bestAlt ? `${r.bestAlt.hw.label} — ${eur(r.bestAlt.cost.total)}` : "—"}`,
-    `Ownership premium (model): ${eur(r.delta)}`,
-    `Horizon: ${st.econ.years} years · Electricity: ${st.econ.kwhPrice} €/kWh`,
-    `Resilience: target ${(st.resilience?.targetUtilization * 100).toFixed(0)}% · N+1 ${st.resilience?.nPlusOne ? "yes" : "no"}`,
-    `Warnings: ${r.validation?.warnings?.join(" ") || "none"}`,
-    "Comparability: workload shape is aligned; model quality, latency, context, tooling and legal suitability require separate validation.",
+    "— Istantanea del confronto —",
+    `Opzione di proprietà più economica: ${r.bestOwn ? `${r.bestOwn.hw.label} — ${eur(r.bestOwn.cost.total)}` : "—"}`,
+    `Alternativa eleggibile più economica: ${r.bestAlt ? `${r.bestAlt.hw.label} — ${eur(r.bestAlt.cost.total)}` : "—"}`,
+    `Premio di proprietà (modello): ${eur(r.delta)}`,
+    `Orizzonte: ${st.econ.years} anni · Elettricità: ${st.econ.kwhPrice} €/kWh`,
+    `Resilienza: obiettivo ${(st.resilience?.targetUtilization * 100).toFixed(0)}% · N+1 ${st.resilience?.nPlusOne ? "sì" : "no"}`,
+    `Avvertenze: ${r.validation?.warnings?.join(" ") || "nessuna"}`,
+    "Comparabilità: la forma del carico di lavoro è allineata; qualità del modello, latenza, contesto, strumenti e idoneità legale richiedono una validazione separata.",
     "",
-    "Paste this block into the message field of the form.",
+    "Incolla questo blocco nel campo messaggio del modulo.",
   ];
   return lines.join("\n");
 }
@@ -103,8 +105,8 @@ export async function openRfqForm(st, r, option = null) {
       ok: false,
       err: true,
       message: copied
-        ? "Scenario summary copied, but the quote form URL is not configured yet."
-        : "Quote form URL is not configured yet.",
+        ? "Riepilogo dello scenario copiato, ma l'URL del modulo di preventivo non è ancora configurato."
+        : "L'URL del modulo di preventivo non è ancora configurato.",
     };
   }
 
@@ -112,7 +114,7 @@ export async function openRfqForm(st, r, option = null) {
   return {
     ok: true,
     message: copied
-      ? "Scenario summary copied. Paste it into the message field."
-      : "Quote form opened. Copy your Markdown/JSON export into the message field if needed.",
+      ? "Riepilogo dello scenario copiato. Incollalo nel campo messaggio."
+      : "Modulo di preventivo aperto. Se serve, copia il tuo export Markdown/JSON nel campo messaggio.",
   };
 }

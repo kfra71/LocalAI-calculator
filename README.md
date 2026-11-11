@@ -1,171 +1,184 @@
 # LocalAI-TCO by Dinova
 
-**Size your way to private local AI.**
+**Dimensiona il tuo modo per l'AI locale e privata.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-LocalAI--TCO-2ea44f)](https://localai-tco.dinova.one/)
 
-> Find the constraint that actually binds — then size the private local stack that fits.
+> Trova il vincolo che lega davvero — poi dimensiona lo stack locale e privato che ci sta.
 
-Three limits decide the technical minimum for one resident text model:
-memory for the KV cache, combined prefill/decode serving capacity, and the runtime session ceiling. They are
-evaluated explicitly and one or more can bind — usually not the limit people size
-for. LocalAI-TCO finds them, prices them, and compares eligible alternatives
-you can actually use on the path to private local AI.
+Tre limiti determinano il minimo tecnico per un singolo modello testuale residente:
+la memoria per la KV cache, il serving combinato prefill/decode e il tetto di
+sessioni del runtime. Sono valutati in modo esplicito e uno o più possono legare — di
+solito non il limite per cui le persone dimensionano. LocalAI-TCO li individua, li
+prezza e confronta le alternative eleggibili che puoi davvero usare nel percorso
+verso la AI locale e privata.
 
-Frontend only. No build step, no server, no database, no account, no telemetry.
-Everything runs in your browser tab and nothing you type is transmitted anywhere.
+Solo frontend. Nessuna fase di build, nessun server, nessun database, nessun account, nessuna
+telemetria. Tutto gira nella scheda del tuo browser e nulla di ciò che scrivi viene
+trasmesso da nessuna parte.
 
-**[Open the calculator →](https://localai-tco.dinova.one/)**
+**[Apri il calcolatore →](https://localai-tco.dinova.one/)**
 
-## Features
+## Funzionalità
 
-- **Guided setup** for first visits — team shape and model, then a live binding-constraint
-  result in a few seconds. Re-open anytime from **Guided setup** in the masthead.
-- **Sizes the machines** from your actual workload, treating interactive users and
-  autonomous agents as the structurally different loads they are.
-- **Shows which constraint binds** for every configuration, so you can see when you
-  are about to buy against the wrong limit.
-- **Compares transparently**: owned hardware, eligible sovereign rental, and enterprise
-  subscriptions with per-token API for agents, while flagging capability and service differences.
-- **Flags its own domain**, and tells you when your deployment has outgrown the model.
-- **Separates measured from estimated.** Every hardware and model profile carries a
-  confidence level, and it appears in the exported report. Exact model/hardware runs
-  in `data/profiles.json` override bandwidth estimates when they match.
-- **Exports a decision record** as Markdown, and the full scenario as JSON you can
-  reload later.
+- **Configurazione guidata** per la prima visita — forma dell'organico e modello, poi un
+  risultato in tempo reale sul vincolo in pochi secondi. Riaprila in qualsiasi momento da
+  **Configurazione guidata** nella testata.
+- **Dimensiona le macchine** partendo dal tuo carico di lavoro reale, trattando utenti
+  interattivi e agenti autonomi come i carichi strutturalmente diversi che sono.
+- **Mostra quale vincolo lega** per ogni configurazione, così vedi quando stai per
+  acquistare rispetto al limite sbagliato.
+- **Confronta in modo trasparente**: hardware di proprietà, noleggio sovrano eleggibile e
+  abbonamenti enterprise con API per token per gli agenti, segnalando le differenze di
+  capacità e di servizio.
+- **Segnala il proprio dominio**, e ti avvisa quando la tua installazione ha superato il
+  modello.
+- **Separa i dati misurati da quelli stimati.** Ogni profilo di hardware e di modello
+  riporta un livello di confidenza, che compare nel report esportato. Le esecuzioni
+  esatte modello/hardware in `data/profiles.json` sostituiscono le stime di banda
+  (bandwidth) quando corrispondono.
+- **Esporta un verbale di decisione** in Markdown e l'intero scenario in JSON, che puoi
+  ricaricare in seguito.
 
-## Why this exists
+## Perché esiste
 
-The honest answer to *"should we run this locally?"* is usually a sizing question
-wearing a budget question's coat. Most comparisons on the internet get it wrong in
-the same three ways:
+La risposta onesta a *"dovremmo gestirlo in locale?"* è di solito una domanda di
+dimensionamento con il vestito di una domanda di budget. La maggior parte dei confronti
+che si trovano in internet sbaglia negli stessi tre modi:
 
-1. **They size on the wrong constraint.** Buying against a limit that is not binding is
-   how organisations end up with capacity they never use — and how they miss the one
-   that will actually stop them at load.
-2. **They compare against the wrong thing.** If your reason for going local is data
-   governance, a provider you cannot audit is not a comparable at any price. What
-   remains is renting metal from a sovereign provider, or subscribing to a vendor
-   you already trust with your CRM.
-3. **They forget that the metal is the cheap part.** Personnel is usually the largest
-   line, and it does not disappear when you rent instead of buy — you manage the same
-   software on someone else's iron.
+1. **Dimensionano rispetto al vincolo sbagliato.** Acquistare rispetto a un limite che
+   non lega è il modo in cui le organizzazioni finiscono con capacità che non usano mai
+   — e il modo in cui mancano quello che li fermerà davvero sotto carico.
+2. **Confrontano con la cosa sbagliata.** Se la tua ragione per andare in locale è la
+   governance dei dati, un fornitore che non puoi verificare non è confrontabile a nessun
+   prezzo. Rimane il noleggio dell'hardware da un fornitore sovrano, oppure
+   l'abbonamento a un fornitore di cui ti fidi già per il tuo CRM.
+3. **Dimenticano che l'hardware è la parte economica.** Il personale è di solito la voce
+   di costo più grande, e non scompare quando noleggi invece di comprare — gestisci lo
+   stesso software sull'hardware di qualcun altro.
 
-This tool makes the assumptions explicit. It is a directional sensitivity estimator,
-not a procurement quote; validate the exact model, runtime and hardware before purchase.
+Questo strumento rende esplicite le assunzioni. È uno stimatore di sensibilità direzionale,
+non un preventivo d'acquisto; valida modello, runtime e hardware esatti prima dell'acquisto.
 
-## Why this name
+## Perché questo nome
 
-**TCO** is *total cost of ownership*: the whole bill for running the workload, not just
-the hardware on the invoice. **Local AI** is what that bill is for — inference you own
-and operate instead of renting per token. **LocalAI-TCO** is therefore the question
-this tool answers: what does the whole thing cost to own, over the horizon?
+**TCO** è *total cost of ownership*: il conto complessivo per far girare il carico di
+lavoro, non solo l'hardware in fattura. **Local AI** è ciò per cui quel conto esiste —
+inferenza che possiedi e gestisci invece di noleggiare a token. **LocalAI-TCO** è quindi
+la domanda a cui questo strumento risponde: quanto costa possedere tutto, sull'orizzonte
+considerato?
 
-The other half of the name is the constraint that *binds*. Of the three limits that set
-your machine count, one is usually the real ceiling, and sizing against the wrong one
-is how organisations end up with capacity they never use. Find the bind first, then
-size the private local stack that fits — that ordering is the whole point.
+L'altra metà del nome è il vincolo che *lega*. Dei tre limiti che determinano il numero
+di macchine, uno è di solito il vero soffitto, e dimensionare rispetto a quello sbagliato
+è il modo in cui le organizzazioni finiscono con capacità che non usano mai. Trova prima
+il vincolo che lega, poi dimensiona lo stack locale e privato che ci sta — quest'ordine
+è tutto il punto.
 
-## Project structure
+## Struttura del progetto
 
 ```
-index.html            entry point
-assets/styles.css     hand-written, no framework
-src/engine.js         the whole calculation — pure functions, no imports
-src/io.js             JSON and Markdown export, JSON import
-src/app.js            UI (React + htm via CDN, no build step)
-data/models.json      model architecture profiles
-data/hardware.json    hardware and rental catalogue
-data/profiles.json    exact model×hardware×runtime observations
-data/defaults.json    starting values, subscription references, sector table
-data/scenarios.json   guided-setup presets (org + workload + agents)
-data/benchmarks.json  historical record of measured runs
-data/schema/          catalogue and saved-scenario schemas
-tests/                engine and scenario checks
+index.html            punto d'ingresso
+assets/styles.css     scritto a mano, nessun framework
+src/engine.js         tutto il calcolo — funzioni pure, nessun import
+src/io.js             export JSON e Markdown, import JSON
+src/app.js            UI (React + htm via CDN, nessuna fase di build)
+data/models.json      profili delle architetture dei modelli
+data/hardware.json    catalogo dell'hardware e del noleggio
+data/profiles.json    osservazioni esatte modello×hardware×runtime
+data/defaults.json    valori iniziali, riferimenti di abbonamento, tabella dei settori
+data/scenarios.json   preset della configurazione guidata (organico + carico + agenti)
+data/benchmarks.json  storico delle esecuzioni misurate
+data/schema/          schemi del catalogo e degli scenari salvati
+tests/                controlli del motore e degli scenari
 ```
 
-The split is deliberate. **Adding a model, a machine or a benchmark means editing
-one JSON file**, not reading the application.
+La separazione è voluta. **Aggiungere un modello, una macchina o un benchmark significa
+modificare un solo file JSON**, non leggere l'applicazione.
 
-## How it works
+## Come funziona
 
-**Cost of an hour.** Gross salary × employer coefficient ÷ working hours, blended with
-a freelance rate by whatever share of hours you outsource.
+**Costo di un'ora.** Retribuzione annua lorda × coefficiente del datore di lavoro ÷ ore
+lavorative, miscelata con una tariffa freelance in base alla quota di ore esternalizzate.
 
-**Workload.** Two populations. People work office hours and produce violent peaks —
-the peak factor falls as `1 + k/√activePopulation`, where the active population weights
-developers fully and casual roles by their concurrency share, because bursts average
-out with the people who are actually generating load. Autonomous agents run around the
-clock with a flat profile and a much higher cache hit rate, because they replay the
-same prompts every cycle. Each carries its own peak factor, and the KV requirement
-sums two different context lengths.
+**Carico di lavoro.** Due popolazioni. Le persone lavorano in orario d'ufficio e
+producono picchi violenti — il fattore di picco decresce come
+`1 + k/√activePopulation`, dove la popolazione attiva pesa interamente gli sviluppatori e
+in proporzione alla quota di concorrenza i ruoli occasionali, perché i picchi si
+compensano con le persone che stanno effettivamente generando carico. Gli agenti autonomi
+girano continuativamente con un profilo piatto e un tasso di hit della cache molto più
+alto, perché ripetono gli stessi prompt a ogni ciclo. Ciascuno porta il proprio
+fattore di picco, e il requisito di KV somma due lunghezze di contesto diverse.
 
-**Model.** Six architecture parameters, and they pull in different directions:
+**Modello.** Sei parametri di architettura, e tirano in direzioni diverse:
 
-| Parameter | What it decides |
+| Parametro | Cosa determina |
 |---|---|
-| Total parameters | How many GPUs hold the weights |
-| Active parameters | How fast it decodes — a 284B MoE with 13B active occupies like a 284B and generates like a 13B |
-| Bytes per parameter | The selected checkpoint precision. Unsupported hardware combinations are excluded rather than silently converted |
-| KV cache per token | How many concurrent sessions fit. Depends on the attention architecture, not on size |
-| Accepted tokens per step | Speculative decoding: weights are read once per step, not per token |
-| Prefill / decode ratio | Why input is priced at a fraction of output while costing far less than that fraction |
+| Parametri totali | Quante GPU contengono i pesi |
+| Parametri attivi | Quanto è veloce il decode — un MoE da 284B con 13B attivi occupa come un 284B e genera come un 13B |
+| Byte per parametro | La precisione del checkpoint scelto. Le combinazioni hardware non supportate vengono escluse anziché convertite in silenzio |
+| KV cache per token | Quante sessioni concorrenti entrano. Dipende dall'architettura dell'attenzione, non dalla dimensione |
+| Token accettati per passo | Decoding speculativo: i pesi vengono letti una volta per passo, non per token |
+| Rapporto prefill / decode | Perché l'input viene prezzato a una frazione dell'output pur costando molto meno di quella frazione |
 
-**Sizing.** KV and runtime are independent limits. Prefill and decode share accelerator
-time, so the serving constraint adds their normalized loads. The recommendation then adds
-any configured maintenance reserve or N+1:
+**Dimensionamento.** KV e runtime sono limiti indipendenti. Prefill e decode condividono
+il tempo dell'acceleratore, quindi il vincolo di serving combinato prefill/decode somma
+i loro carichi normalizzati.
+La raccomandazione aggiunge poi l'eventuale riserva di manutenzione configurata o N+1:
 
 ```
 units = max(
-  ceil(KV required ÷ KV per unit),             // memory
-  ceil(combined serving load ÷ util target),   // decode+prefill share the silicon
-  ceil(sessions ÷ max concurrent per node)     // runtime ceiling
+  ceil(KV required ÷ KV per unit),             // memoria
+  ceil(combined serving load ÷ util target),   // decode e prefill condividono il silicio
+  ceil(sessions ÷ max concurrent per node)     // tetto del runtime
 )
 ```
 
-The limit(s) that produced the maximum are the ones that bind. Everything else has
-slack, and spending money on slack is the most common mistake in this whole exercise.
+Il limite, o i limiti, che hanno prodotto il massimo sono quelli che legano. Tutto il resto ha
+margine di capacità, e spendere denaro su margine di capacità è l'errore più comune
+nell'intero esercizio.
 
-**Cost.** CapEx, demand-derived energy at your tariff and PUE, management hours at your
-blended rate, support, explicit replacement reserve, and optionally the margin from
-genuinely available spare capacity. Media is excluded unless a separate measured local
-media cost/profile is supplied.
+**Costo.** CapEx, energia derivata dalla domanda alla tua tariffa e al tuo PUE, ore di
+gestione alla tua tariffa oraria media, supporto, accantonamento esplicito per la
+sostituzione e, opzionalmente, il margine derivante da capacità residua realmente
+disponibile. I media (supporti di archiviazione) sono esclusi a meno che non venga fornito
+separatamente un costo/profilo locale dei media misurato.
 
-The short version: **a number without its configuration cannot be reproduced.** Any
-benchmark recorded in the catalogue needs the pinned engine build, the exact flags, the
-concurrency, whether the traffic was synthetic or realistic, and the failure modes hit.
+In breve: **un numero senza la sua configurazione non è riproducibile.** Ogni benchmark
+registrato nel catalogo richiede la build del motore fissata, i flag esatti, la
+concorrenza, se il traffico era sintetico o realistico e i modi di fallimento incontrati.
 
-Confidence levels are part of the data, not a disclaimer:
+I livelli di confidenza fanno parte dei dati, non sono un'avvertenza:
 
-| Level | Means |
+| Livello | Significato |
 |---|---|
-| `measured` | First-party run, pinned build, verifiable |
-| `published` | Public reproducible recipe |
-| `community` | Unverified report; used only when its explicitly selected profile is active |
-| `list-price` | Vendor's published price |
-| `aggregator` | Third-party price tracker, not the vendor |
-| `estimated` | Derived from bandwidth and memory arithmetic |
-| `derived` / `kv-derived` | Calculated from another measurement; inspect the stated derivation and range |
-| `template` | A starting point you are expected to replace |
+| `measured` | Esecuzione di prima parte, build fissata, verificabile |
+| `published` | Ricetta pubblica e riproducibile |
+| `community` | Segnalazione non verificata; usata solo quando è attivo il suo profilo selezionato esplicitamente |
+| `list-price` | Prezzo pubblicato dal fornitore |
+| `aggregator` | Rilevatore di prezzi di terze parti, non il fornitore |
+| `estimated` | Derivato da calcoli di bandwidth (banda) e memoria |
+| `derived` / `kv-derived` | Calcolato da un'altra misurazione; verifica la derivazione e l'intervallo indicati |
+| `template` | Un punto di partenza che sei tenuto a sostituire |
 
-Open contradictions belong in the data too. When two runs disagree, record why — or
-resolve them when the configurations are not actually comparable. The DeepSeek NVFP4-KV
-Spark figure (~27.8 KB/token) and the FP8-KV community figure (~10.6 KB/token) are kept
-on separate catalogue entries after that resolution. Do the same with yours.
+Anche le contraddizioni aperte vanno nei dati. Quando due esecuzioni non concordano,
+registra perché — oppure risolvile quando le configurazioni non sono davvero confrontabili.
+Il dato DeepSeek NVFP4-KV su Spark (~27,8 KB/token) e il dato community FP8-KV
+(~10,6 KB/token) restano su voci di catalogo separate dopo quella risoluzione. Fai
+come con i tuoi.
 
-## What this tool will not tell you
+## Cosa questo strumento non vi dirà
 
-Whether the premium is worth paying. It estimates it over the selected evidence range.
-It does not establish that subscription and local models are equivalent in quality,
-latency, context, tools or availability. Whether data governance is
-worth that much to your organisation is a question about your contracts, your
-regulator and your risk appetite — and no spreadsheet answers it.
+Se il premio valga la pena di essere pagato. Lo stima sull'intervallo di evidenze
+selezionato. Non stabilisce che modelli in abbonamento e modelli locali siano equivalenti
+in qualità, latenza, contesto, strumenti o disponibilità. Se la governance dei dati
+valga tanto per la tua organizzazione è una domanda sui tuoi contratti, sul tuo
+regolatore e sulla tua propensione al rischio — e nessun foglio di calcolo vi risponde.
 
-## License
+## Licenza
 
-MIT. See [LICENSE](LICENSE).
+MIT. Vedi [LICENSE](LICENSE).
 
-## Author
+## Autore
 
 **Juxhin Radhima**

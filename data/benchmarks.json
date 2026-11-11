@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/benchmarks.schema.json",
-  "note": "Historical record. Nothing here feeds the calculation directly - values are transcribed into models.json and hardware.json only after review. Confidence levels: measured (first-party run with pinned build), published (public reproducible recipe), community (unverified report).",
+  "note": "Registro storico. Nulla qui alimenta direttamente il calcolo: i valori vengono trascritti in models.json e hardware.json solo dopo la revisione. Livelli di confidenza: measured (esecuzione first-party con build fissata), published (ricetta pubblica riproducibile), community (segnalazione non verificata).",
   "benchmarks": [
     {
       "id": "laguna-station-2026-07",
@@ -8,20 +8,20 @@
       "confidence": "measured",
       "model": "Laguna S 2.1 NVFP4",
       "hardware": "1x DGX Station GB300",
-      "config": "vLLM main dd72658e / FlashInfer 0.6.15.post1 / TP1 / FP8 KV / NVFP4 weights / no DFlash / 262,144 tokens per agent / 10 concurrent",
+      "config": "vLLM main dd72658e / FlashInfer 0.6.15.post1 / TP1 / FP8 KV / NVFP4 weights / no DFlash / 262.144 token per agente / 10 concorrenti",
       "metrics": [
-        { "label": "Single-stream decode (p50)", "value": "59.59 tok/s", "note": "32K output profile" },
-        { "label": "Aggregate decode", "value": "571.43 tok/s", "note": "32K output, 10 agents" },
-        { "label": "Aggregate decode", "value": "651.94 tok/s", "note": "128K output, 10 agents" },
-        { "label": "Aggregate prefill", "value": "43,026 tok/s", "note": "32K profile; 56,802 at 128K" },
-        { "label": "TTFT p50", "value": "30.07 s", "note": "229K prompt" },
-        { "label": "Resident KV", "value": "2,767,665 tokens", "note": "10.56 full windows, HBM only" },
-        { "label": "Peak HBM", "value": "248,611 MiB", "note": "242.8 GiB of 252 GB - saturated, zero spill" }
+        { "label": "Decode a stream singolo (p50)", "value": "59.59 tok/s", "note": "Profilo con output 32K" },
+        { "label": "Decode aggregato", "value": "571.43 tok/s", "note": "Output 32K, 10 agenti" },
+        { "label": "Decode aggregato", "value": "651.94 tok/s", "note": "Output 128K, 10 agenti" },
+        { "label": "Prefill aggregato", "value": "43,026 tok/s", "note": "Profilo 32K; 56,802 a 128K" },
+        { "label": "TTFT p50", "value": "30.07 s", "note": "Prompt 229K" },
+        { "label": "KV residente", "value": "2,767,665 tokens", "note": "10.56 finestre complete, solo HBM" },
+        { "label": "HBM di picco", "value": "248,611 MiB", "note": "242.8 GiB di 252 GB: saturata, zero spill" }
       ],
-      "qualification": "10/10 exact requests, 10 output hashes verified, zero failures, zero preemptions, zero swap, unique prompts, forced output, no CPU/KV/UVA offload.",
+      "qualification": "10/10 richieste esatte, 10 hash di output verificati, zero errori, zero preemption, zero swap, prompt univoci, output forzato, nessun offload su CPU/KV/UVA.",
       "caveats": [
-        "Benchmark conditions, not realistic mixed traffic. Unique prompts mean zero prefix reuse - the worst case for KV, but the best case for throughput consistency.",
-        "No realistic-traffic soak exists for this configuration, so it is not directly comparable to the DeepSeek numbers below."
+        "Condizioni di benchmark, non traffico misto realistico. Prompt univoci significano zero riuso dei prefissi: il caso peggiore per la KV, ma il caso migliore per la costanza del throughput.",
+        "Per questa configurazione non esiste un soak con traffico realistico, quindi non è direttamente confrontabile con i dati DeepSeek qui sotto."
       ]
     },
     {
@@ -32,18 +32,18 @@
       "hardware": "2x DGX Spark, TP=2",
       "config": "vLLM + DSpark (Anemll dspark-vllm-gx10:0.1.1) / kv_cache_dtype=nvfp4_ds_mla / max_model_len 1,048,576 / max_num_seqs 4–6 / MTP_NUM_TOKENS 5–6 / gpu_memory_utilization ≈0.80–0.835",
       "metrics": [
-        { "label": "Single-stream decode", "value": "82.4 tok/s", "note": "official decode bench, concurrency 1, 2048 completion tokens" },
-        { "label": "Aggregate at concurrency 4", "value": "120.4 tok/s", "note": "plan with this for 4 concurrent users/agents; TTFT rises to 5.36 s at x4" },
-        { "label": "Per-stream at concurrency 4", "value": "33.6 tok/s", "note": "what each concurrent session feels like at x4" },
-        { "label": "Peak aggregate", "value": "134.6 tok/s", "note": "concurrency 3 in the same official decode capture" },
-        { "label": "Prefill at 100K depth", "value": "2,639 tok/s", "note": "1,513 at 8K, 2,284 at 32K (prior recipe sweep)" },
-        { "label": "KV pool", "value": "2,493,464 tokens", "note": "live boot at util ≈0.835, ~18.08 GiB KV; ~2.38× concurrency at 1M context" }
+        { "label": "Decode a stream singolo", "value": "82.4 tok/s", "note": "bench di decode ufficiale, concorrenza 1, 2048 token di completion" },
+        { "label": "Aggregato a concorrenza 4", "value": "120.4 tok/s", "note": "pianifica con questo valore per 4 utenti/agenti concorrenti; il TTFT sale a 5.36 s a x4" },
+        { "label": "Per stream a concorrenza 4", "value": "33.6 tok/s", "note": "ciò che ogni sessione concorrente percepisce a x4" },
+        { "label": "Picco aggregato", "value": "134.6 tok/s", "note": "concorrenza 3 nella stessa cattura di decode ufficiale" },
+        { "label": "Prefill a profondità 100K", "value": "2,639 tok/s", "note": "1,513 a 8K, 2,284 a 32K (sweep precedente della ricetta)" },
+        { "label": "Pool KV", "value": "2,493,464 tokens", "note": "avvio reale a util ≈0.835, ~18.08 GiB KV; ~2.38× concorrenza a contesto 1M" }
       ],
-      "qualification": "Official OpenAI-compatible decode benchmark on the 2× Spark cluster (2048 completion tokens, concurrency 1–6). Published x1–x4 rows: 82.4 / 98.0 / 134.6 / 120.4 tok/s aggregate.",
+      "qualification": "Benchmark di decode ufficiale compatibile con OpenAI sul cluster 2× Spark (2048 token di completion, concorrenza 1–6). Righe pubblicate da x1 a x4: 82.4 / 98.0 / 134.6 / 120.4 tok/s aggregate.",
       "caveats": [
-        "At concurrency 4, TTFT jumps to ~5.36 s while aggregate falls from the x3 peak (134.6) to 120.4 tok/s — plan capacity on aggregate, UX on per-stream (~33.6).",
-        "With stream=true some clients report steps/s rather than tok/s; read usage.completion_tokens for true decode throughput.",
-        "Prefill at deep context remains the bottleneck for long agent sessions; the 900K validation TTFT is on the order of ~1000 s."
+        "A concorrenza 4 il TTFT sale a ~5.36 s mentre l'aggregato scende dal picco x3 (134.6) a 120.4 tok/s: pianifica la capacità sull'aggregato, la UX sul singolo stream (~33.6).",
+        "Con stream=true alcuni client riportano steps/s anziché tok/s; leggi usage.completion_tokens per il vero throughput di decode.",
+        "Il prefill con contesto profondo resta il collo di bottiglia per sessioni lunghe di agenti; il TTFT di validazione a 900K è dell'ordine di ~1000 s."
       ],
       "sources": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark"]
     },
@@ -53,25 +53,25 @@
       "confidence": "community",
       "model": "DeepSeek V4 Flash DSpark, official FP8 (~167 GB)",
       "hardware": "2x RTX PRO 6000 Blackwell, TP=2",
-      "config": "Community vLLM build (upstream fails to load the 0731 release: new MTP norm layout) / dspark k=5 / kv-cache-dtype fp8 / gpu-memory-utilization 0.94 / max-model-len 524,288",
+      "config": "Build vLLM della community (l'upstream non riesce a caricare la release 0731: nuovo layout della norm MTP) / dspark k=5 / kv-cache-dtype fp8 / gpu-memory-utilization 0.94 / max-model-len 524,288",
       "metrics": [
-        { "label": "Single-stream decode (median)", "value": "243 tok/s", "note": "3.1x over the no-spec baseline of ~78" },
-        { "label": "Aggregate at concurrency 2", "value": "299 tok/s", "note": "" },
-        { "label": "Aggregate at concurrency 4", "value": "403 tok/s", "note": "batching factor 1.66x" },
-        { "label": "Draft acceptance", "value": "74-76%", "note": "zero failures" },
-        { "label": "Model weights", "value": "167 GB", "note": "fits 192 GB without requantisation" },
-        { "label": "KV pool", "value": "~988,000 tokens", "note": "at util 0.94" },
-        { "label": "Stability soak", "value": "237-245 tok/s", "note": "3 hours mixed load" }
+        { "label": "Decode a stream singolo (mediana)", "value": "243 tok/s", "note": "3.1x rispetto alla baseline no-spec di ~78" },
+        { "label": "Aggregato a concorrenza 2", "value": "299 tok/s", "note": "" },
+        { "label": "Aggregato a concorrenza 4", "value": "403 tok/s", "note": "fattore di batching 1.66x" },
+        { "label": "Accettazione del draft", "value": "74-76%", "note": "zero errori" },
+        { "label": "Pesi del modello", "value": "167 GB", "note": "entra in 192 GB senza requantizzazione" },
+        { "label": "Pool KV", "value": "~988,000 tokens", "note": "a util 0.94" },
+        { "label": "Soak di stabilità", "value": "237-245 tok/s", "note": "3 ore di carico misto" }
       ],
-      "qualification": "Unverified community report on a non-official build.",
+      "qualification": "Segnalazione community non verificata su una build non ufficiale.",
       "caveats": [
-        "max_num_seqs > 4 fails deterministically on the first request. Root cause is a hardcoded prefill chunk size feeding an empty padding slice into the sparse MLA kernel. This is an implementation defect, not an architectural limit - a production build should not carry it.",
-        "Upstream vLLM does not load this release at all, so the build under test is not what you would run in production.",
-        "confidence_head is fully wired in this build but defaults to a threshold of 0, i.e. present and unused.",
-        "RESOLVED vs Spark NVFP4-KV: this run used FP8 KV on a different checkpoint. The ~10.6 KB/token figure belongs on deepseek-v4-flash-0731-fp8 only; it is not a second sample of the NVFP4-KV Spark path (~27.77 KB/token).",
-        "167 GB across 284 billion declared parameters is 0.588 bytes per parameter, so not pure FP8. Either the checkpoint is mixed, or the 284B figure does not describe this variant."
+        "max_num_seqs > 4 fallisce in modo deterministico alla prima richiesta. La causa è una dimensione di chunk di prefill hardcoded che alimenta il kernel MLA sparso con una slice di padding vuota. È un difetto di implementazione, non un limite architetturale: una build di produzione non dovrebbe portarselo dietro.",
+        "vLLM upstream non carica affatto questa release, quindi la build sotto test non è quella che useresti in produzione.",
+        "confidence_head è completamente collegato in questa build, ma ha come predefinita una soglia di 0, cioè è presente e inutilizzato.",
+        "RESOLVED rispetto a Spark NVFP4-KV: questa esecuzione ha usato KV FP8 su un checkpoint diverso. Il valore di ~10.6 KB/token appartiene solo a deepseek-v4-flash-0731-fp8; non è un secondo campione del percorso Spark NVFP4-KV (~27.77 KB/token).",
+        "167 GB su 284 miliardi di parametri dichiarati corrispondono a 0.588 byte per parametro, quindi non si tratta di FP8 puro. O il checkpoint è misto, oppure il dato dei 284B non descrive questa variante."
       ],
-      "highlight": "The most interesting result is a non-result: the author expected an SM120 kernel wall and never hit one. Measured efficiency is around 28.5% against the 6% this tool assumes conservatively for that column."
+      "highlight": "Il risultato più interessante è l'assenza di un risultato: l'autore si aspettava un muro di kernel su SM120 e non l'ha mai incontrato. L'efficienza misurata è intorno al 28.5% rispetto al 6% che questo strumento assume in modo conservativo per quella colonna."
     },
     {
       "id": "qwen36-spark-nvfp4-2026",
@@ -79,18 +79,18 @@
       "confidence": "published",
       "model": "Qwen3.6 35B-A3B NVFP4",
       "hardware": "1x DGX Spark / GB10 (128 GB UMA)",
-      "config": "vLLM 0.25.0 ARM64 / FlashInfer B12X NVFP4 MoE / FP8 KV / native MTP-3 / max_model_len 262144 / unsloth Qwen3.6-35B-A3B-NVFP4-Fast (NNNtrance recipe)",
+      "config": "vLLM 0.25.0 ARM64 / FlashInfer B12X NVFP4 MoE / FP8 KV / MTP-3 nativo / max_model_len 262144 / unsloth Qwen3.6-35B-A3B-NVFP4-Fast (NNNtrance recipe)",
       "metrics": [
-        { "label": "Single-stream decode (C1)", "value": "91.5 tok/s", "note": "mean TPOT 10.32 ms" },
-        { "label": "Aggregate at concurrency 16", "value": "370.8 tok/s", "note": "" },
-        { "label": "Aggregate gate at concurrency 64", "value": "707.0 tok/s", "note": "application-shaped" },
-        { "label": "Ten-minute soak", "value": "756 requests / 355,226 tokens", "note": "mixed C12/C32/C64; zero errors" },
-        { "label": "KV pool", "value": "5,359,388 tokens in 62.08 GiB", "note": "→ 11.58 KB/token; 20.44× full 262K windows" }
+        { "label": "Decode a stream singolo (C1)", "value": "91.5 tok/s", "note": "TPOT medio 10.32 ms" },
+        { "label": "Aggregato a concorrenza 16", "value": "370.8 tok/s", "note": "" },
+        { "label": "Soglia aggregata a concorrenza 64", "value": "707.0 tok/s", "note": "a forma di applicazione" },
+        { "label": "Soak di dieci minuti", "value": "756 requests / 355,226 tokens", "note": "C12/C32/C64 misti; zero errori" },
+        { "label": "Pool KV", "value": "5,359,388 tokens in 62.08 GiB", "note": "→ 11.58 KB/token; 20.44× finestre complete da 262K" }
       ],
-      "qualification": "Pinned public recipe with soak: 756 completed requests, zero stalls, GPU util ~94%.",
+      "qualification": "Ricetta pubblica fissata con soak: 756 richieste completate, zero stall, utilizzo GPU ~94%.",
       "caveats": [
-        "Recipe targets a single 128 GB Spark / Ascent GX10, not the catalogue 2x Spark TP=2 topology. Profile on spark-2x treats the appliance as able to host this single-node recipe (or two replicas); do not assume TP=2 decode equals 2× these numbers.",
-        "MTP acceptance varies by prompt class; treat aggregate bands as stack-specific, not architecture ceilings."
+        "La ricetta punta a un singolo Spark da 128 GB / Ascent GX10, non alla topologia 2x Spark TP=2 del catalogo. Il profilo su spark-2x tratta l'appliance come in grado di ospitare questa ricetta a nodo singolo (o due repliche); non presumere che il decode con TP=2 valga 2× questi numeri.",
+        "L'accettazione MTP varia per classe di prompt; considera le bande aggregate specifiche dello stack, non dei limiti architetturali."
       ],
       "sources": ["https://github.com/NNNtrance/Qwen3.6-35B-A3B-NVFP4-Fast-DGX-Spark"]
     },
@@ -100,16 +100,16 @@
       "confidence": "community",
       "model": "Qwen3.6 35B-A3B (bf16 blog) / NVFP4 community claims",
       "hardware": "1x RTX PRO 6000 Blackwell (96 GB)",
-      "config": "Community blog: full bf16, single GPU, no offload. Separate HF notes claim NVFP4 MoE path on the same SKU with custom vLLM images.",
+      "config": "Blog della community: bf16 completo, singola GPU, nessun offload. Note HF separate indicano un percorso NVFP4 MoE sulla stessa SKU con immagini vLLM personalizzate.",
       "metrics": [
-        { "label": "Single-stream decode (bf16)", "value": "217.84 tok/s", "note": "Vadi Taslim blog; not NVFP4" },
-        { "label": "TTFT avg (bf16)", "value": "47 ms", "note": "" },
-        { "label": "8K context throughput (bf16)", "value": "124–147 tok/s", "note": "tuned vs baseline" }
+        { "label": "Decode a stream singolo (bf16)", "value": "217.84 tok/s", "note": "blog di Vadi Taslim; non NVFP4" },
+        { "label": "TTFT medio (bf16)", "value": "47 ms", "note": "" },
+        { "label": "Throughput a contesto 8K (bf16)", "value": "124–147 tok/s", "note": "ottimizzato rispetto alla baseline" }
       ],
-      "qualification": "Unverified community report for bf16; NVFP4 on RTX PRO is claimed compatible by quant authors but lacks a pinned public soak matching the Spark recipe.",
+      "qualification": "Segnalazione community non verificata per bf16; la compatibilità di NVFP4 su RTX PRO è dichiarata dagli autori della quantizzazione, ma manca un soak pubblico fissato che corrisponda alla ricetta Spark.",
       "caveats": [
-        "The solid number is bf16 on one card. Catalogue profile for rtxpro-2x is community and uses that as a lower bound while assuming NVFP4 and a second card improve aggregate — treat as directional only.",
-        "Do not promote this to published until a pinned NVFP4 recipe with concurrency sweep exists for 1× or 2× RTX PRO 6000."
+        "Il dato solido è bf16 su una singola scheda. Il profilo di catalogo per rtxpro-2x è community e usa quel valore come limite inferiore, assumendo che NVFP4 e una seconda scheda migliorino l'aggregato: da considerare solo come stima direzionale.",
+        "Non promuoverlo a published finché non esiste per 1× o 2× RTX PRO 6000 una ricetta NVFP4 fissata con sweep di concorrenza."
       ],
       "sources": [
         "https://www.vaditaslim.com/blog/ai/qwen3.6-benchmarks-rtx-pro-6000",
@@ -122,24 +122,24 @@
       "confidence": "published",
       "model": "gpt-oss-120b (FP4 / FP8)",
       "hardware": "NVIDIA TRT-LLM reference: B200, GB200, H200, H100",
-      "config": "trtllm-bench offline max-throughput / PyTorch backend / published ModelOpt checkpoints / ISL/OSL sweeps per NVIDIA perf overview",
+      "config": "trtllm-bench offline a massimo throughput / backend PyTorch / checkpoint ModelOpt pubblicati / sweep ISL/OSL secondo la panoramica delle prestazioni NVIDIA",
       "metrics": [
-        { "label": "B200 DEP2 FP4 @ 1000/1000", "value": "25,943 tok/s/GPU", "note": "output tokens per GPU" },
+        { "label": "B200 DEP2 FP4 @ 1000/1000", "value": "25,943 tok/s/GPU", "note": "token di output per GPU" },
         { "label": "GB200 TP1 FP4 @ 1000/1000", "value": "27,198 tok/s/GPU", "note": "" },
         { "label": "H200 TP1 FP8 @ 1000/1000", "value": "6,868 tok/s/GPU", "note": "" },
         { "label": "H100 DEP4 FP8 @ 1000/1000", "value": "4,685 tok/s/GPU", "note": "" },
-        { "label": "B200 DEP2 FP4 @ 8192/1024", "value": "6,111 tok/s/GPU", "note": "long prefill" },
-        { "label": "B200 DEP2 FP4 @ 32768/1024", "value": "1,392 tok/s/GPU", "note": "longest published ISL in the table" },
+        { "label": "B200 DEP2 FP4 @ 8192/1024", "value": "6,111 tok/s/GPU", "note": "prefill lungo" },
+        { "label": "B200 DEP2 FP4 @ 32768/1024", "value": "1,392 tok/s/GPU", "note": "ISL più lungo pubblicato nella tabella" },
         { "label": "GB200 TP1 FP4 @ 32768/1024", "value": "1,645 tok/s/GPU", "note": "" },
-        { "label": "H200 TP1 FP8 @ 8192/1024", "value": "1,828 tok/s/GPU", "note": "long prefill" },
-        { "label": "H200 TP1 FP8 @ 32768/1024", "value": "519 tok/s/GPU", "note": "longest published ISL in the table" }
+        { "label": "H200 TP1 FP8 @ 8192/1024", "value": "1,828 tok/s/GPU", "note": "prefill lungo" },
+        { "label": "H200 TP1 FP8 @ 32768/1024", "value": "519 tok/s/GPU", "note": "ISL più lungo pubblicato nella tabella" }
       ],
-      "qualification": "Vendor-published tables with documented trtllm-bench reproduce steps. Not first-party LocalAI-TCO runs.",
+      "qualification": "Tabelle pubblicate dal vendor con passi di riproduzione di trtllm-bench documentati. Non sono esecuzioni first-party di LocalAI-TCO.",
       "caveats": [
-        "Offline synthetic max-throughput, not realistic mixed traffic. Same caveat class as DeepSeek synthetic vs realistic split.",
-        "B300 ≠ B200 and Station GB300 ≠ GB200 NVL72. Catalogue profiles that map onto those SKUs are marked derived and should be read as order-of-magnitude yardsticks.",
-        "Per-GPU figures; a multi-GPU catalogue unit must state TP/DP assumptions when aggregating.",
-        "Longest published sequence in these tables is 32,768 input tokens. LocalAI-TCO defaults (100k people / 180k agents) exceed that — profiles fall back to the bandwidth estimate and warn."
+        "Throughput massimo sintetico offline, non traffico misto realistico. Stessa classe di avvertenza della distinzione DeepSeek sintetico vs realistico.",
+        "B300 ≠ B200 e Station GB300 ≠ GB200 NVL72. I profili di catalogo che mappano su quegli SKU sono marcati derived e vanno letti come ordini di grandezza.",
+        "Valori per GPU; un'unità di catalogo multi-GPU deve indicare le assunzioni TP/DP quando aggrega.",
+        "La sequenza più lunga pubblicata in queste tabelle è di 32,768 token di input. I valori predefiniti di LocalAI-TCO (100k persone / 180k agenti) superano tale valore: i profili ripiegano sulla stima di bandwidth e avvertono."
       ],
       "sources": ["https://nvidia.github.io/TensorRT-LLM/developer-guide/perf-overview.html"]
     },
@@ -149,16 +149,16 @@
       "confidence": "published",
       "model": "Qwen3.5 397B-A17B NVFP4",
       "hardware": "4x B200 / B300 / GB200 / GB300 (NVIDIA minimum)",
-      "config": "trtllm-serve nvidia/Qwen3.5-397B-A17B-NVFP4 — tensor_parallel_size=4, moe_expert_parallel_size=4, enable_attention_dp=true, moe_config.backend=CUTEDSL, kv_cache free_gpu_memory_fraction=0.8, max_batch_size=512 (curated qwen3.5.yaml)",
+      "config": "trtllm-serve nvidia/Qwen3.5-397B-A17B-NVFP4 — tensor_parallel_size=4, moe_expert_parallel_size=4, enable_attention_dp=true, moe_config.backend=CUTEDSL, kv_cache free_gpu_memory_fraction=0.8, max_batch_size=512 (qwen3.5.yaml curato)",
       "metrics": [
-        { "label": "Minimum GPUs (NVFP4)", "value": "4× Blackwell", "note": "B200/B300/GB200/GB300 validated for fit" },
-        { "label": "Parallelism", "value": "TP=4 EP=4", "note": "attention DP on" },
-        { "label": "Published tok/s table", "value": "not in deploy guide", "note": "use benchmark_serving.py locally; catalogue profile decode is derived" }
+        { "label": "GPU minime (NVFP4)", "value": "4× Blackwell", "note": "B200/B300/GB200/GB300 con fit validato" },
+        { "label": "Parallelismo", "value": "TP=4 EP=4", "note": "attention DP attivo" },
+        { "label": "Tabella tok/s pubblicata", "value": "not in deploy guide", "note": "usa benchmark_serving.py in locale; il decode del profilo di catalogo è derived" }
       ],
-      "qualification": "Vendor deployment guide with pinned container tag pattern and curated YAML. Validates multi-GPU footprint, not a LocalAI-TCO first-party soak.",
+      "qualification": "Guida di deployment del vendor con pattern di tag del container fissato e YAML curato. Valida l'ingombro multi-GPU, non è un soak first-party di LocalAI-TCO.",
       "caveats": [
-        "No official tok/s table in the deploy guide — decode bands in qwen35-b300-4x-nvfp4 are derived placeholders pending a first-party or vendor throughput sweep.",
-        "Guide also covers Hopper; catalogue pairs the NVFP4 checkpoint with b300-4x (Blackwell)."
+        "Nessuna tabella ufficiale di tok/s nella guida di deployment: le bande di decode in qwen35-b300-4x-nvfp4 sono placeholder derived in attesa di uno sweep di throughput first-party o del vendor.",
+        "La guida copre anche Hopper; il catalogo abbina il checkpoint NVFP4 a b300-4x (Blackwell)."
       ],
       "sources": [
         "https://nvidia.github.io/TensorRT-LLM/latest/deployment-guide/deployment-guide-for-qwen3.5-on-trtllm.html",
