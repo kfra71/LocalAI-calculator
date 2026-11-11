@@ -1,4 +1,4 @@
-# Bindwidth
+# Dinova LocalAI TCO calculator
 
 **Size your way to private local AI.**
 
@@ -21,15 +21,7 @@ you can actually use on the path to private local AI.
 Frontend only. No build step, no server, no database, no account, no telemetry.
 Everything runs in your browser tab and nothing you type is transmitted anywhere.
 
-**[Open the calculator →](https://juxhinr.github.io/bindwidth/)**
-
-## Request a quote
-
-Sized a configuration you want to buy, rent, or stand up? In the
-[calculator](https://juxhinr.github.io/bindwidth/), use **Request quote** — it copies your scenario
-summary and opens a Google Form so we can reply with pricing and next steps.
-
-→ **[Request a quote](https://forms.gle/Dm3w5JAhwHGrCSBo8)**
+**[Open the calculator →](https://localai-tco.dinova.one/)**
 
 ## Features
 
@@ -74,31 +66,6 @@ not a procurement quote; validate the exact model, runtime and hardware before p
 divided into memory bandwidth, gives you the ceiling. And of the three constraints that
 set your machine count, one *binds*. Both readings are the tool — and sizing against the
 right bind is how you find your way to private local AI.
-
-## Quick start
-
-```bash
-git clone https://github.com/juxhinr/bindwidth.git
-cd bindwidth
-python3 -m http.server 8080
-# open http://localhost:8080
-```
-
-Opening `index.html` directly from the filesystem will not work: browsers block
-`fetch` on `file://`, and the catalogues are loaded that way so contributors can edit
-them without touching code.
-
-## Tests
-
-```bash
-node tests/engine.test.mjs
-node tests/migration.test.mjs
-node tests/claims.test.mjs
-node tests/scenarios.test.mjs
-```
-
-The engine is pure functions with no DOM and no dependencies. The tests pin the
-arithmetic against known values — if a number moves without a reason, they say which.
 
 ## Project structure
 
@@ -165,16 +132,6 @@ blended rate, support, explicit replacement reserve, and optionally the margin f
 genuinely available spare capacity. Media is excluded unless a separate measured local
 media cost/profile is supplied.
 
-## Contributing
-
-Measured runs are worth more than opinions. See [CONTRIBUTING.md](CONTRIBUTING.md)
-and the in-app [contribute page](https://juxhinr.github.io/bindwidth/contribute.html).
-
-**Easy ways in:**
-- Open a [catalogue](https://github.com/juxhinr/bindwidth/issues/new?template=catalogue.yml) or [benchmark](https://github.com/juxhinr/bindwidth/issues/new?template=benchmark.yml) issue
-- Pick something labelled [`good first issue`](https://github.com/juxhinr/bindwidth/labels/good%20first%20issue)
-- Edit one JSON file under `data/` and open a pull request
-
 The short version: **a number without its configuration cannot be reproduced.** If you
 submit a benchmark, include the pinned engine build, the exact flags, the concurrency,
 whether the traffic was synthetic or realistic, and the failure modes you hit.
@@ -212,8 +169,3 @@ MIT. See [LICENSE](LICENSE).
 ## Author
 
 **Juxhin Radhima**
-
-**Project sponsor:** [Get Sh!t Done](https://get.shitdone.ai/) — *Repetitive work done
-for you. Not another tool to learn.* A done-for-you managed workforce of AI agents:
-sales, social, credit recovery and ads. We configure, launch and run them so your team
-focuses on what matters. Cloud and on-premise.
