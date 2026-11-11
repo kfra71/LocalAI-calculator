@@ -2,7 +2,7 @@
  * Request-for-quote → Google Form.
  * Paste the published form URL below when you have it.
  * The app copies a scenario summary to the clipboard, then opens the form
- * so the requester can paste it into "Scenario summary from Bindwidth".
+ * so the requester can paste it into the scenario summary field of the form.
  */
 export const RFQ_FORM_URL = "https://forms.gle/Dm3w5JAhwHGrCSBo8";
 
@@ -18,7 +18,7 @@ export function isRfqConfigured() {
 export function buildRfqSummary(st, r, option = null) {
   const target = option || r.bestOwn;
   const lines = [
-    `Bindwidth RFQ summary — ${new Date().toISOString().slice(0, 10)}`,
+    `LocalAI-TCO RFQ summary — ${new Date().toISOString().slice(0, 10)}`,
     `Scenario: ${st.scenarioName || "Untitled"}`,
     "",
     "— Configuration of interest —",
@@ -60,7 +60,7 @@ export function buildRfqSummary(st, r, option = null) {
     `Warnings: ${r.validation?.warnings?.join(" ") || "none"}`,
     "Comparability: workload shape is aligned; model quality, latency, context, tooling and legal suitability require separate validation.",
     "",
-    "Paste this block into the form field “Scenario summary from Bindwidth”.",
+    "Paste this block into the scenario summary field of the form.",
   ];
   return lines.join("\n");
 }
@@ -112,7 +112,7 @@ export async function openRfqForm(st, r, option = null) {
   return {
     ok: true,
     message: copied
-      ? "Scenario summary copied. Paste it into the form field “Scenario summary from Bindwidth”."
+      ? "Scenario summary copied. Paste it into the scenario summary field."
       : "Quote form opened. Copy your Markdown/JSON export into the scenario summary field if needed.",
   };
 }

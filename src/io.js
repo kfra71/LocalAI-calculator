@@ -5,7 +5,7 @@
 import { validateState } from "./engine.js";
 
 export const SCHEMA_VERSION = 2;
-export const APP_NAME = "Bindwidth";
+export const APP_NAME = "LocalAI-TCO";
 export const APP_TAGLINE = "Size your way to private local AI";
 
 const V2_DEFAULTS = {
@@ -177,7 +177,7 @@ export function buildExportPayload(state, results) {
 export function exportJson(state, results) {
   const payload = buildExportPayload(state, results);
   download(
-    `bindwidth-${(state.scenarioName || "scenario").replace(/\W+/g, "-").toLowerCase()}-${stamp()}.json`,
+    `localai-tco-${(state.scenarioName || "scenario").replace(/\W+/g, "-").toLowerCase()}-${stamp()}.json`,
     JSON.stringify(payload, null, 2),
     "application/json"
   );
@@ -210,7 +210,7 @@ export function buildMarkdown(state, r) {
   const L = [];
   const push = (...x) => L.push(...x);
 
-  push(`# ${st.scenarioName || "Bindwidth scenario"}`, "");
+  push(`# ${st.scenarioName || "LocalAI-TCO scenario"}`, "");
   push(
     `Generated ${new Date().toISOString().slice(0, 10)} with ${APP_NAME}.`,
     `Scenario schema ${SCHEMA_VERSION}. Directional estimate, not a procurement quote.`,
@@ -407,11 +407,11 @@ export function buildMarkdown(state, r) {
 
   push("---", "");
   push(
-    `Built with [${APP_NAME}](https://github.com/juxhinr/bindwidth) — open source, frontend only, no data leaves your browser.`,
+    `Built with [${APP_NAME}](https://localai-tco.dinova.one/) — frontend only, no data leaves your browser.`,
     "",
     "Author: Juxhin Radhima",
     "",
-    "Sponsored by [Get Sh!t Done](https://get.shitdone.ai/) — repetitive work done for you. Not another tool to learn."
+    "LocalAI-TCO by Dinova — https://localai-tco.dinova.one/"
   );
 
   return L.join("\n");
@@ -419,7 +419,7 @@ export function buildMarkdown(state, r) {
 
 export function exportMarkdown(state, r) {
   download(
-    `bindwidth-${(state.scenarioName || "scenario").replace(/\W+/g, "-").toLowerCase()}-${stamp()}.md`,
+    `localai-tco-${(state.scenarioName || "scenario").replace(/\W+/g, "-").toLowerCase()}-${stamp()}.md`,
     buildMarkdown(state, r),
     "text/markdown"
   );

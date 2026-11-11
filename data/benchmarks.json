@@ -134,12 +134,12 @@
         { "label": "H200 TP1 FP8 @ 8192/1024", "value": "1,828 tok/s/GPU", "note": "long prefill" },
         { "label": "H200 TP1 FP8 @ 32768/1024", "value": "519 tok/s/GPU", "note": "longest published ISL in the table" }
       ],
-      "qualification": "Vendor-published tables with documented trtllm-bench reproduce steps. Not first-party Bindwidth runs.",
+      "qualification": "Vendor-published tables with documented trtllm-bench reproduce steps. Not first-party LocalAI-TCO runs.",
       "caveats": [
         "Offline synthetic max-throughput, not realistic mixed traffic. Same caveat class as DeepSeek synthetic vs realistic split.",
         "B300 ≠ B200 and Station GB300 ≠ GB200 NVL72. Catalogue profiles that map onto those SKUs are marked derived and should be read as order-of-magnitude yardsticks.",
         "Per-GPU figures; a multi-GPU catalogue unit must state TP/DP assumptions when aggregating.",
-        "Longest published sequence in these tables is 32,768 input tokens. Bindwidth defaults (100k people / 180k agents) exceed that — profiles fall back to the bandwidth estimate and warn."
+        "Longest published sequence in these tables is 32,768 input tokens. LocalAI-TCO defaults (100k people / 180k agents) exceed that — profiles fall back to the bandwidth estimate and warn."
       ],
       "sources": ["https://nvidia.github.io/TensorRT-LLM/developer-guide/perf-overview.html"]
     },
@@ -155,7 +155,7 @@
         { "label": "Parallelism", "value": "TP=4 EP=4", "note": "attention DP on" },
         { "label": "Published tok/s table", "value": "not in deploy guide", "note": "use benchmark_serving.py locally; catalogue profile decode is derived" }
       ],
-      "qualification": "Vendor deployment guide with pinned container tag pattern and curated YAML. Validates multi-GPU footprint, not a Bindwidth first-party soak.",
+      "qualification": "Vendor deployment guide with pinned container tag pattern and curated YAML. Validates multi-GPU footprint, not a LocalAI-TCO first-party soak.",
       "caveats": [
         "No official tok/s table in the deploy guide — decode bands in qwen35-b300-4x-nvfp4 are derived placeholders pending a first-party or vendor throughput sweep.",
         "Guide also covers Hopper; catalogue pairs the NVFP4 checkpoint with b300-4x (Blackwell)."

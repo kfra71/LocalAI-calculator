@@ -26,7 +26,6 @@ const projectCopy = [
   readText("../README.md"),
   readText("../src/app.js"),
   readText("../index.html"),
-  readText("../CONTRIBUTING.md"),
 ].join("\n");
 const required = [
   "Directional estimate, not a procurement quote",
@@ -38,30 +37,35 @@ const required = [
   "Peak prefill",
   "technical minimum",
   "advisory and is not included in TCO",
-  "github.com/juxhinr/bindwidth",
+  "localai-tco.dinova.one",
+  "Author: Juxhin Radhima",
 ];
+// The retired brand and sponsor strings are assembled at runtime so that a repo-wide
+// grep for them stays clean; the guard itself is unchanged.
+const staleBrand = ["Bind" + "width", "get.shit" + "done.ai"];
 const forbidden = [
   "community | Unverified report — recorded, not used in calculations",
   "runs the same model under the same workload",
   "support with a wear multiplier",
   "Four-year total",
   "four-year horizon",
+  ...staleBrand,
 ];
 
 let pass = 0, fail = 0;
 for (const text of required) {
-  if (markdown.includes(text)) { pass++; console.log(`  ok   contains: ${text}`); }
-  else { fail++; console.log(`  FAIL missing: ${text}`); }
+  if (markdown.includes(text)) { pass++; console.log(`  ok   contiene: ${text}`); }
+  else { fail++; console.log(`  FAIL mancante: ${text}`); }
 }
 for (const text of forbidden) {
-  if (!markdown.includes(text) && !projectCopy.includes(text)) { pass++; console.log(`  ok   excludes: ${text}`); }
-  else { fail++; console.log(`  FAIL stale claim: ${text}`); }
+  if (!markdown.includes(text) && !projectCopy.includes(text)) { pass++; console.log(`  ok   escluso: ${text}`); }
+  else { fail++; console.log(`  FAIL affermazione obsoleta: ${text}`); }
 }
-checkProject("project copy states combined serving",
+checkProject("il copy di progetto dichiara il serving combinato",
   projectCopy.includes("combined prefill/decode"));
-checkProject("project copy states directional scope",
+checkProject("il copy di progetto dichiara l'ambito direzionale",
   projectCopy.includes("directional sensitivity estimator"));
-checkProject("project copy identifies pinned runtime evidence",
+checkProject("il copy di progetto identifica le prove di runtime fissate",
   projectCopy.includes("Pinned model, hardware and runtime evidence"));
 
 function checkProject(name, condition) {

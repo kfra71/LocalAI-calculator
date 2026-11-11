@@ -90,7 +90,7 @@ const Ladder = ({ sizing }) => {
 
 /* ---------------- first-visit wizard ---------------- */
 
-const WIZARD_KEY = "bindwidth.wizard.done";
+const WIZARD_KEY = "localai-tco.wizard.done";
 const WIZARD_STEPS = [
   { id: "welcome", label: "Welcome" },
   { id: "scenario", label: "Scenario" },
@@ -184,7 +184,7 @@ function Wizard({ st, set, r, catalog, scenarios = [], selectedPresetId, onSelec
           ${stepId === "welcome" && html`
             <h2 id="wizard-title">${APP_TAGLINE}</h2>
             <p class="lede">
-              Bindwidth finds which constraint binds — KV memory, combined prefill/decode serving, or session ceiling —
+              LocalAI-TCO finds which constraint binds — KV memory, combined prefill/decode serving, or session ceiling —
               and prices owned hardware against the alternatives you can use. Pick a realistic starting scenario so
               token rates, concurrency, and peaks match the organisation — not a 20-person office pasted onto one laptop.
             </p>
@@ -1111,14 +1111,6 @@ function BenchmarksView({ catalog }) {
             </details>`}
           <//>`
       )}
-      <${Panel} title="Contribute a run">
-        <p class="lede">
-          Open a pull request adding an entry to <span class="mono">data/benchmarks.json</span>. What makes a run
-          usable by other people: a pinned engine build, the exact flags, the concurrency, whether the traffic was
-          synthetic or realistic, and the failure modes you hit. A number without its configuration cannot be
-          reproduced and will not be transcribed into the catalogues.
-        </p>
-      <//>
     </div>`;
 }
 
@@ -1137,7 +1129,7 @@ function ExportView({ st, r, onImport, onExport, onMarkdown, onReset, onQuote })
               <button class="btn primary" onClick=${onMarkdown}>Save as Markdown</button>
               <p class="small muted" style=${{ marginTop: 6 }}>
                 A readable report: inputs, workload, every option compared, sizing detail, the domain check and the
-                confidence levels. Paste it into a decision record or a pull request.
+                confidence levels. Paste it into a decision record.
               </p>
             </div>
             <div>
@@ -1167,7 +1159,7 @@ function ExportView({ st, r, onImport, onExport, onMarkdown, onReset, onQuote })
 
       <${Panel} title="Request a quote">
         <p class="lede" style=${{ marginBottom: 12 }}>
-          Ready to buy or deploy? We copy a Bindwidth scenario summary to your clipboard and open a Google Form.
+          Ready to buy or deploy? We copy a LocalAI-TCO scenario summary to your clipboard and open a Google Form.
         </p>
         <button class="btn primary" type="button" onClick=${() => onQuote(r.bestOwn || null)}
           disabled=${!r.validation?.valid || !r.bestOwn?.sizing?.fits || !r.bestOwn?.eligibility?.eligible || r.bestOwn?.cost?.underProvisioned}>
@@ -1321,7 +1313,7 @@ function App({ catalog }) {
   return html`
     <div class="app">
       <header class="masthead">
-        <div class="wordmark">Bindwidth <span class="dim">${APP_TAGLINE.toLowerCase()}</span></div>
+        <div class="wordmark">LocalAI-TCO <span class="dim">${APP_TAGLINE.toLowerCase()}</span></div>
         <div class="spacer"></div>
         <div class="masthead-tools">
           <input class="scenario" placeholder="Name this scenario" value=${st.scenarioName}
@@ -1367,20 +1359,19 @@ function App({ catalog }) {
             <h4>${APP_TAGLINE}</h4>
             <p>
               Memory bandwidth strongly influences decode, while prefill shares the same accelerator time.
-              KV memory, combined serving and runtime sessions can tie as binding limits. Bindwidth surfaces them
+              KV memory, combined serving and runtime sessions can tie as binding limits. LocalAI-TCO surfaces them
               so you can size a private local stack against what actually binds.
             </p>
             <p>
-              Frontend only. Nothing you type is transmitted anywhere. Add hardware, models and benchmarks by
-              opening a pull request against the JSON files in <span class="mono">data/</span>.
+              Frontend only. Nothing you type is transmitted anywhere. The catalogues are plain JSON files in
+              <span class="mono">data/</span>.
             </p>
           </div>
           <div>
             <h4>Author</h4>
             <p><strong>Juxhin Radhima</strong></p>
             <p class="small muted">
-              MIT licence. Contributions welcome: measured runs are worth more than opinions, and a number without
-              its configuration cannot be reproduced.
+              MIT licence. Author: Juxhin Radhima.
             </p>
             <p>
               <button class="btn sm" type="button" onClick=${() => handleQuote(r.bestOwn || null)}
@@ -1390,13 +1381,13 @@ function App({ catalog }) {
             </p>
           </div>
           <div class="sponsor">
-            <div class="name">Get Sh!t Done</div>
-            <div class="tag">Repetitive work done for you. Not another tool to learn.</div>
+            <div class="name">Dinova</div>
+            <div class="tag">LocalAI-TCO by Dinova</div>
             <p class="small">
-              A done-for-you managed workforce of AI agents — sales, social, credit recovery and ads. We configure,
-              launch and run them so your team focuses on what matters. Cloud and on-premise.
+              Directional sizing for private local AI. Frontend only: no server, no telemetry, nothing you type
+              leaves your browser.
             </p>
-            <a class="small" href="https://get.shitdone.ai/" target="_blank" rel="noopener">get.shitdone.ai →</a>
+            <a class="small" href="https://localai-tco.dinova.one/" target="_blank" rel="noopener">localai-tco.dinova.one →</a>
           </div>
         </div>
       </footer>

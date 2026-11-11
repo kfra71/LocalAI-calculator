@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Bindwidth hardware catalogue",
+  "title": "LocalAI-TCO hardware catalogue",
   "type": "object",
   "required": ["hardware"],
   "properties": {

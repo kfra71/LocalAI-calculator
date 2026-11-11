@@ -29,19 +29,19 @@ const v1State = {
 };
 
 const migrated = migratePayload({ schemaVersion: 1, state: v1State });
-check("schema advances to v2", migrated.schemaVersion === SCHEMA_VERSION);
-check("migration is recorded", migrated.migrationsApplied.includes("v1-to-v2"));
-check("resilience defaults are supplied", migrated.state.resilience.targetUtilization === 0.85);
-check("requirements defaults are supplied", migrated.state.requirements.sovereignOnly === true);
-check("precision capabilities are inferred", migrated.state.hardware.every((h) => h.supportedPrecisions.length));
-check("legacy scenario computes after migration",
+check("lo schema avanza a v2", migrated.schemaVersion === SCHEMA_VERSION);
+check("la migration è registrata", migrated.migrationsApplied.includes("v1-to-v2"));
+check("i default di resilience sono forniti", migrated.state.resilience.targetUtilization === 0.85);
+check("i default di requirements sono forniti", migrated.state.requirements.sovereignOnly === true);
+check("le capacità di precisione sono dedotte", migrated.state.hardware.every((h) => h.supportedPrecisions.length));
+check("lo scenario legacy viene calcolato dopo la migration",
   Number.isFinite(compute(migrated.state, profiles).options[0].cost.total));
 
 const result = compute(migrated.state, profiles);
 const payload = buildExportPayload(migrated.state, result);
-check("new export uses current schema", payload.schemaVersion === SCHEMA_VERSION);
-check("new export preserves state", payload.state.scenarioName === "legacy");
-check("new export records resolved option evidence",
+check("il nuovo export usa lo schema corrente", payload.schemaVersion === SCHEMA_VERSION);
+check("il nuovo export preserva lo stato", payload.state.scenarioName === "legacy");
+check("il nuovo export registra le prove delle opzioni risolte",
   payload.summary.options.every((o) =>
     Object.hasOwn(o, "eligible") &&
     Object.hasOwn(o, "recommendedUnits") &&
@@ -49,7 +49,7 @@ check("new export records resolved option evidence",
     Object.hasOwn(o, "uncertaintyBands")));
 
 const v2WithoutAdditiveDefaults = migratePayload({ schemaVersion: 2, state: v1State });
-check("v2 imports receive missing additive defaults",
+check("gli import v2 ricevono i default additivi mancanti",
   v2WithoutAdditiveDefaults.state.resilience.targetUtilization === 0.85 &&
   v2WithoutAdditiveDefaults.state.profileOverrides);
 
@@ -59,7 +59,7 @@ try {
 } catch {
   malformedRejected = true;
 }
-check("malformed v2 state is rejected before compute", malformedRejected);
+check("uno stato v2 malformato viene rifiutato prima del calcolo", malformedRejected);
 
 let futureRejected = false;
 try {
@@ -67,7 +67,7 @@ try {
 } catch {
   futureRejected = true;
 }
-check("future schema is rejected", futureRejected);
+check("uno schema futuro viene rifiutato", futureRejected);
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

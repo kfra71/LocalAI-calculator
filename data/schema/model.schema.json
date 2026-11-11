@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Bindwidth model catalogue",
+  "title": "LocalAI-TCO model catalogue",
   "type": "object",
   "required": ["models"],
   "properties": {

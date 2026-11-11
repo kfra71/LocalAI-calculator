@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/model.schema.json",
-  "note": "Add a model by copying an entry. Six architecture parameters drive the whole calculation. See CONTRIBUTING.md. models[0] is the product default.",
+  "note": "Add a model by copying an entry. Six architecture parameters drive the whole calculation. See schema/model.schema.json for the field definitions. models[0] is the product default.",
   "models": [
     {
       "id": "qwen3.6-35b-a3b",

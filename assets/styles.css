@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Bindwidth — an instrument, not a landing page.
+   LocalAI-TCO — an instrument, not a landing page.
    Palette taken from lab equipment: cool paper, graphite ink, a single
    indigo for action and an amber that means "this is the limit that binds".
    ========================================================================== */
@@ -40,8 +40,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
-  /* Banner content ~37px; grow with notch padding so sticky masthead clears it */
-  --banner-h: calc(37px + var(--safe-top));
+  /* Sticky masthead sits at the very top; the tabs clear it below. */
   --masthead-h: 52px;
 }
 
@@ -88,33 +87,14 @@ a:hover { color: var(--accent); }
   overflow-x: clip;
 }
 
-.contrib-banner {
-  display: block;
-  position: sticky; top: 0; z-index: 50;
-  background: #f3e2c4;
-  color: var(--ink);
-  border-bottom: 1px solid #d9b87a;
-  padding: 9px 20px;
-  padding-top: calc(9px + var(--safe-top));
-  font-size: 12.5px;
-  line-height: 1.4;
-  text-align: center;
-  text-decoration: none;
-}
-.contrib-banner:hover { background: #edd6a8; }
-.contrib-banner em { font-style: normal; font-weight: 600; color: var(--bind); }
-.contrib-banner .go {
-  display: inline-block; margin-left: 8px;
-  color: var(--accent-ink); font-weight: 500; white-space: nowrap;
-}
-
 .masthead {
   background: var(--ink);
   color: #fff;
   padding: 0 20px;
+  padding-top: var(--safe-top);
   display: flex; align-items: center; gap: 18px;
-  min-height: var(--masthead-h);
-  position: sticky; top: var(--banner-h); z-index: 40;
+  min-height: calc(var(--masthead-h) + var(--safe-top));
+  position: sticky; top: 0; z-index: 40;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -140,7 +120,6 @@ a:hover { color: var(--accent); }
   min-width: 160px; max-width: 220px;
 }
 .masthead .scenario::placeholder { color: #7b818e; }
-.masthead-solo { top: 0; padding-top: var(--safe-top); }
 .masthead a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 
 .btn {
@@ -163,7 +142,7 @@ a:hover { color: var(--accent); }
   padding: 0 20px; display: flex; gap: 2px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  position: sticky; top: calc(var(--banner-h) + var(--masthead-h)); z-index: 30;
+  position: sticky; top: calc(var(--masthead-h) + var(--safe-top)); z-index: 30;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   width: 100%;
@@ -564,95 +543,9 @@ details.expand .inner { padding: 0 12px 14px; font-size: 12.5px; color: var(--in
   * { animation: none !important; transition: none !important; }
 }
 
-/* ---------- contribute page ---------- */
-
-.page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 36px 20px 80px;
-}
-.page-back {
-  display: inline-block;
-  font-size: 12.5px;
-  color: var(--muted);
-  text-decoration: none;
-  margin-bottom: 22px;
-}
-.page-back:hover { color: var(--ink); }
-.page h1 {
-  font-family: var(--display);
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -.02em;
-  margin: 0 0 10px;
-  line-height: 1.2;
-}
-.page .lede {
-  font-size: 16px;
-  color: var(--ink-2);
-  line-height: 1.55;
-  margin: 0 0 32px;
-}
-.page h2 {
-  font-family: var(--display);
-  font-size: 17px;
-  font-weight: 600;
-  margin: 28px 0 8px;
-}
-.page p, .page li {
-  font-size: 14px;
-  color: var(--ink-2);
-  line-height: 1.6;
-  margin: 0 0 10px;
-}
-.page ul { margin: 0 0 12px; padding-left: 1.2em; }
-.page code {
-  font-family: var(--mono);
-  font-size: 12px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-s);
-  padding: 1px 5px;
-}
-.page .levels-wrap { width: 100%; max-width: 100%; margin: 12px 0 18px; }
-.page .levels {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin: 0;
-}
-.page .levels th, .page .levels td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
-.page .levels th {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--muted);
-  font-weight: 500;
-}
-.page .levels code { font-size: 11.5px; }
-.page .cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-
-/* ---------- responsive (after page styles so they win) ---------- */
+/* ---------- responsive ---------- */
 
 @media (max-width: 720px) {
-  .contrib-banner {
-    position: static; /* free the sticky top band for the masthead */
-    padding: 8px 14px;
-    font-size: 12px;
-    text-align: left;
-  }
-  .contrib-banner .go {
-    display: block;
-    margin: 4px 0 0;
-    white-space: normal;
-  }
-
   .masthead {
     top: 0;
     flex-wrap: wrap;
@@ -783,18 +676,6 @@ details.expand .inner { padding: 0 12px 14px; font-size: 12.5px; color: var(--in
     font-size: 16px;
     text-align: left;
   }
-
-  .page { padding: 24px 14px 60px; }
-  .page h1 { font-size: 24px; }
-  .page .lede { font-size: 15px; }
-  .page .levels-wrap {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-  }
-  .page .levels { width: max-content; min-width: 100%; }
 }
 
 @media (max-width: 400px) {
@@ -804,6 +685,6 @@ details.expand .inner { padding: 0 12px 14px; font-size: 12.5px; color: var(--in
 }
 
 @media print {
-  .contrib-banner, .masthead, .tabs, .verdict, .foot, .wizard-overlay { display: none; }
+  .masthead, .tabs, .verdict, .foot, .wizard-overlay { display: none; }
   .panel { break-inside: avoid; box-shadow: none; }
 }

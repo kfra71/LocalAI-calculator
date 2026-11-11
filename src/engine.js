@@ -1,5 +1,5 @@
 /**
- * Bindwidth — calculation engine
+ * LocalAI-TCO — calculation engine
  *
  * Pure functions, no DOM, no imports. Given a state object it returns every
  * derived number the UI shows. Keeping it separate means the maths can be

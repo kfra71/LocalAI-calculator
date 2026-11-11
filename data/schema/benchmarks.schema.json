@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Bindwidth benchmark archive",
+  "title": "LocalAI-TCO benchmark archive",
   "type": "object",
   "required": ["benchmarks"],
   "properties": {

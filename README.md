@@ -1,21 +1,16 @@
-# Dinova LocalAI TCO calculator
+# LocalAI-TCO by Dinova
 
 **Size your way to private local AI.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-GitHub%20Pages-2ea44f)](https://juxhinr.github.io/bindwidth/)
-[![GitHub stars](https://img.shields.io/github/stars/juxhinr/bindwidth?style=social)](https://github.com/juxhinr/bindwidth/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/juxhinr/bindwidth)](https://github.com/juxhinr/bindwidth/issues)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Made with JavaScript](https://img.shields.io/badge/made%20with-JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://github.com/juxhinr/bindwidth)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-blue.svg)](CONTRIBUTING.md)
+[![Live Demo](https://img.shields.io/badge/demo-LocalAI--TCO-2ea44f)](https://localai-tco.dinova.one/)
 
 > Find the constraint that actually binds — then size the private local stack that fits.
 
 Three limits decide the technical minimum for one resident text model:
 memory for the KV cache, combined prefill/decode serving capacity, and the runtime session ceiling. They are
 evaluated explicitly and one or more can bind — usually not the limit people size
-for. Bindwidth finds them, prices them, and compares eligible alternatives
+for. LocalAI-TCO finds them, prices them, and compares eligible alternatives
 you can actually use on the path to private local AI.
 
 Frontend only. No build step, no server, no database, no account, no telemetry.
@@ -60,12 +55,17 @@ the same three ways:
 This tool makes the assumptions explicit. It is a directional sensitivity estimator,
 not a procurement quote; validate the exact model, runtime and hardware before purchase.
 
-## Why the name
+## Why this name
 
-*Bandwidth* is what physically decides how fast a model decodes: bytes read per token,
-divided into memory bandwidth, gives you the ceiling. And of the three constraints that
-set your machine count, one *binds*. Both readings are the tool — and sizing against the
-right bind is how you find your way to private local AI.
+**TCO** is *total cost of ownership*: the whole bill for running the workload, not just
+the hardware on the invoice. **Local AI** is what that bill is for — inference you own
+and operate instead of renting per token. **LocalAI-TCO** is therefore the question
+this tool answers: what does the whole thing cost to own, over the horizon?
+
+The other half of the name is the constraint that *binds*. Of the three limits that set
+your machine count, one is usually the real ceiling, and sizing against the wrong one
+is how organisations end up with capacity they never use. Find the bind first, then
+size the private local stack that fits — that ordering is the whole point.
 
 ## Project structure
 
@@ -132,9 +132,9 @@ blended rate, support, explicit replacement reserve, and optionally the margin f
 genuinely available spare capacity. Media is excluded unless a separate measured local
 media cost/profile is supplied.
 
-The short version: **a number without its configuration cannot be reproduced.** If you
-submit a benchmark, include the pinned engine build, the exact flags, the concurrency,
-whether the traffic was synthetic or realistic, and the failure modes you hit.
+The short version: **a number without its configuration cannot be reproduced.** Any
+benchmark recorded in the catalogue needs the pinned engine build, the exact flags, the
+concurrency, whether the traffic was synthetic or realistic, and the failure modes hit.
 
 Confidence levels are part of the data, not a disclaimer:
 

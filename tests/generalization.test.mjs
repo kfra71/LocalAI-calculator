@@ -1,6 +1,6 @@
 /**
- * Engine generalization — synthetic future models/configs, no catalogue IDs.
- * Run with: node tests/generalization.test.mjs
+ * Generalizzazione dell'engine — modelli/configurazioni futuri sintetici, nessun id di catalogo.
+ * Esegui con: node tests/generalization.test.mjs
  */
 import {
   resolvePrecision, resolveProfile, requestedProfileContext,
@@ -29,30 +29,30 @@ const bareState = (model, extras = {}) => ({
   ...extras,
 });
 
-console.log("\n— precision: sticky override, denser fallback, mapped bytes —");
+console.log("\n— precisione: override persistente, fallback più denso, byte mappati —");
 {
   const model = {
     defaultPrecision: "nvfp4",
-    supportedPrecisions: ["bf16", "fp8", "nvfp4"], // deliberately unsorted
+    supportedPrecisions: ["bf16", "fp8", "nvfp4"], // volutamente non ordinato
     bytesPerParam: 0.5,
     bytesPerParamByPrecision: { nvfp4: 0.5, fp8: 1.0, bf16: 2.0 },
   };
   const hopper = { supportedPrecisions: ["fp8", "bf16"], fp4: false };
   const blackwell = { supportedPrecisions: ["nvfp4", "fp8", "bf16"], fp4: true };
 
-  check("Blackwell keeps default NVFP4", resolvePrecision(model, blackwell).precision, "nvfp4");
-  check("Hopper falls back to FP8 not BF16", resolvePrecision(model, hopper).precision, "fp8");
-  truthy("Hopper fallback flagged", resolvePrecision(model, hopper).fellBack);
-  check("Hopper FP8 bytes", resolvePrecision(model, hopper).bytesPerParam, 1.0);
-  truthy("sticky unsupported override", !resolvePrecision(model, hopper, "nvfp4").compatible);
+  check("Blackwell mantiene NVFP4 di default", resolvePrecision(model, blackwell).precision, "nvfp4");
+  check("Hopper ricade su FP8 e non su BF16", resolvePrecision(model, hopper).precision, "fp8");
+  truthy("Il fallback su Hopper è segnalato", resolvePrecision(model, hopper).fellBack);
+  check("Byte per FP8 su Hopper", resolvePrecision(model, hopper).bytesPerParam, 1.0);
+  truthy("Override persistente non supportato", !resolvePrecision(model, hopper, "nvfp4").compatible);
 
   const noMap = {
     defaultPrecision: "nvfp4",
     supportedPrecisions: ["nvfp4", "fp8"],
     bytesPerParam: 0.5,
-    // fp8 missing on purpose
+    // fp8 assente di proposito
   };
-  truthy("fallback without bytes map is incompatible",
+  truthy("Fallback senza mappa dei byte incompatibile",
     !resolvePrecision(noMap, hopper).compatible);
 
   const onlyFp8 = {
@@ -61,22 +61,22 @@ console.log("\n— precision: sticky override, denser fallback, mapped bytes —
     bytesPerParam: 1,
     bytesPerParamByPrecision: { fp8: 1 },
   };
-  truthy("single-precision model stays incompatible on unsupported HW",
+  truthy("Modello a singola precisione incompatibile su HW non supportato",
     !resolvePrecision(onlyFp8, { supportedPrecisions: ["nvfp4"] }).compatible);
 }
 
-console.log("\n— profile context ignores idle agent windows —");
+console.log("\n— il contesto del profilo ignora le finestre idle degli agenti —");
 {
   const st = bareState({ id: "m" }, {
     workload: { context: 8000 },
     agents: { count: 0, context: 200000 },
   });
-  check("people-only context", requestedProfileContext(st), 8000);
+  check("Contesto solo persone", requestedProfileContext(st), 8000);
   st.agents.count = 3;
-  check("agents raise required context", requestedProfileContext(st), 200000);
+  check("Gli agenti alzano il contesto richiesto", requestedProfileContext(st), 200000);
 }
 
-console.log("\n— multi-profile pick prefers stronger confidence —");
+console.log("\n— la scelta multi-profilo preferisce la confidence più forte —");
 {
   const model = { id: "future-moe" };
   const hw = { id: "future-node" };
@@ -96,12 +96,12 @@ console.log("\n— multi-profile pick prefers stronger confidence —");
       testedContext: 8192,
     },
   ];
-  check("picks published over community", resolveProfile(model, hw, profiles).id, "strong");
-  check("override still wins",
+  check("Preferisce published su community", resolveProfile(model, hw, profiles).id, "strong");
+  check("L'override vince comunque",
     resolveProfile(model, hw, profiles, "weak").id, "weak");
 }
 
-console.log("\n— synthetic future MoE sizes on a new SKU —");
+console.log("\n— MoE futuri sintetici dimensionati su una nuova SKU —");
 {
   const model = {
     id: "future-120a10",
@@ -123,10 +123,10 @@ console.log("\n— synthetic future MoE sizes on a new SKU —");
     decodePeak: 500, prefillPeak: 2000, kvRequired: 500_000, sessionsTotal: 10,
   };
   const estimated = sizeOption(hw, st, wl, []);
-  truthy("future pair fits from architecture alone", estimated.fits);
-  check("weights", estimated.weightsGb, 60);
-  check("GB/token = active share", estimated.gbPerToken, 5); // 60 * 10/120
-  truthy("binding is one of the three limits",
+  truthy("La coppia futura sta in piedi solo su architettura", estimated.fits);
+  check("Pesi", estimated.weightsGb, 60);
+  check("GB/token = quota attiva", estimated.gbPerToken, 5); // 60 * 10/120
+  truthy("Il vincolo è uno dei tre limiti",
     ["kv", "serving", "concurrency"].some((b) => estimated.bindings.includes(b)));
 
   const profiles = [{
@@ -138,17 +138,17 @@ console.log("\n— synthetic future MoE sizes on a new SKU —");
     maxSeqs: 16, testedContext: 32768,
   }];
   const matched = sizeOption(hw, st, wl, profiles);
-  check("future profile matches", matched.profileId, "future-measured");
-  check("profile aggregate used", matched.aggregate, 1000);
+  check("Il profilo futuro viene abbinato", matched.profileId, "future-measured");
+  check("Si usa l'aggregato del profilo", matched.aggregate, 1000);
 
   st.workload.context = 64000;
   const outside = sizeOption(hw, st, wl, profiles);
-  check("long context drops profile", outside.profileId, null);
-  truthy("long context explains testedContext",
+  check("Un contesto lungo fa cadere il profilo", outside.profileId, null);
+  truthy("Il contesto lungo spiega testedContext",
     outside.warnings.some((w) => w.includes("tested only")));
 }
 
-console.log("\n— dense vs MoE read volume —");
+console.log("\n— volume letto: dense vs MoE —");
 {
   const dense = modelDerived(
     { totalB: 70, activeB: 70, bytesPerParam: 1, specTokens: 1,
@@ -162,11 +162,11 @@ console.log("\n— dense vs MoE read volume —");
       bytesPerParamByPrecision: { fp8: 1 } },
     { supportedPrecisions: ["fp8"] }
   );
-  check("same footprint", dense.weightsGb, moe.weightsGb);
-  check("MoE reads 10× less per token", dense.gbPerToken / moe.gbPerToken, 10);
+  check("Stesso ingombro", dense.weightsGb, moe.weightsGb);
+  check("Il MoE legge 10× meno per token", dense.gbPerToken / moe.gbPerToken, 10);
 }
 
-console.log("\n— validateState stays model-agnostic —");
+console.log("\n— validateState resta agnostico rispetto al modello —");
 {
   const st = bareState({
     totalB: 10, activeB: 12, kvKbPerToken: 1, specTokens: 1, maxContext: 1000,
@@ -176,10 +176,10 @@ console.log("\n— validateState stays model-agnostic —");
     staff: { hoursYear: 1720 },
     hardware: [{ id: "x", label: "x", memGb: 10, bandwidth: 10, gpus: 1 }],
   });
-  truthy("activeB > totalB rejected", !validateState(st).valid);
+  truthy("activeB > totalB viene rifiutato", !validateState(st).valid);
 }
 
-console.log("\n— sibling production factor scales appliance-validated models up —");
+console.log("\n— il fattore di produzione dei sibling scala i modelli validati su appliance —");
 {
   const model = {
     id: "tiny-moe",
@@ -198,9 +198,9 @@ console.log("\n— sibling production factor scales appliance-validated models u
     efficiency: 0.035, batching: 9.6, prefill: 40000, memReserveGb: 0,
     supportedPrecisions: ["nvfp4"], fp4: true,
   };
-  // Appliance profile: high continuous-batching aggregate (vLLM-class).
-  // theoretical on spark = 500 / (30*0.5*3/30) = 500 / 1.5 ≈ 333.3
-  // base 200 → raw factor ≈ 0.60; catalogue spark factor 0.16*1.6=0.256
+  // Profilo appliance: aggregato alto con continuous batching (classe vLLM).
+  // teorico su spark = 500 / (30*0.5*3/30) = 500 / 1.5 ≈ 333.3
+  // base 200 → fattore grezzo ≈ 0.60; fattore spark di catalogo 0.16*1.6=0.256
   const profiles = [{
     id: "tiny-spark-pub",
     modelId: "tiny-moe", hardwareId: "spark-like",
@@ -212,27 +212,27 @@ console.log("\n— sibling production factor scales appliance-validated models u
   const st = bareState(model);
   st.hardware = [spark, station];
   const sib = siblingProductionFactor(model, station, st, profiles);
-  truthy("finds spark sibling", Boolean(sib));
-  check("applies same-precision haircut", sib.haircut, SIBLING_TRANSFER_HAIRCUT_SAME);
-  truthy("transferred factor beats catalogue floor",
+  truthy("Trova il sibling spark", Boolean(sib));
+  check("Applica lo stesso haircut di precisione", sib.haircut, SIBLING_TRANSFER_HAIRCUT_SAME);
+  truthy("Il fattore trasferito batte il soglia di catalogo",
     sib.factor > station.efficiency * station.batching);
 
   const wl = { decodePeak: 800, prefillPeak: 2000, kvRequired: 100000, sessionsTotal: 8 };
   const onStation = sizeOption(station, st, wl, profiles);
   const catalogueAgg = (7000 / 1.5) * station.efficiency * station.batching;
-  truthy("station aggregate raised above catalogue estimate",
+  truthy("L'aggregato sulla station supera la stima di catalogo",
     onStation.aggregate > catalogueAgg * 1.2);
-  check("confidence becomes derived when transferring", onStation.profileConfidence, "derived");
-  truthy("warns about vLLM-class transfer",
+  check("La confidence diventa derived durante il trasferimento", onStation.profileConfidence, "derived");
+  truthy("Avvisa sul trasferimento di classe vLLM",
     onStation.warnings.some((w) => w.includes("continuous-batching")));
 
-  // Catalogue factor already higher → do not lower.
+  // Il fattore di catalogo è già più alto → non deve abbassarlo.
   const lowBatchProfiles = [{
     ...profiles[0],
-    decode: { low: 10, base: 20, high: 30 }, // factor ~0.06 < station 0.336
+    decode: { low: 10, base: 20, high: 30 }, // fattore ~0.06 < station 0.336
   }];
   const noRaise = sizeOption(station, st, wl, lowBatchProfiles);
-  check("never lowers catalogue floor", noRaise.aggregate, catalogueAgg, 0.001);
+  check("Non abbassa mai il soglia di catalogo", noRaise.aggregate, catalogueAgg, 0.001);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

@@ -1,6 +1,6 @@
 {
   "$schema": "./schema/hardware.schema.json",
-  "note": "kind: 'own' = you buy it. 'rent' = hourly from a provider. Prices in USD unless currency says EUR. See CONTRIBUTING.md before adding an entry.",
+  "note": "kind: 'own' = you buy it. 'rent' = hourly from a provider. Prices in USD unless currency says EUR. See schema/hardware.schema.json for the field definitions.",
   "hardware": [
     {
       "id": "spark-2x",

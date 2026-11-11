@@ -1,6 +1,6 @@
 /**
- * Dual MoE yardsticks — profile match, precision gate, estimate sanity.
- * Run with: node tests/yardstick.test.mjs
+ * Yardstick MoE duali — abbinamento del profilo, gate di precisione, sanità delle stime.
+ * Esegui con: node tests/yardstick.test.mjs
  */
 import { readFileSync } from "node:fs";
 import { sizeOption, workload, resolvePrecision } from "../src/engine.js";
@@ -30,7 +30,7 @@ function stateFor(modelId, context = 8000) {
   return {
     org: { ...defaults.org }, staff: { ...defaults.staff }, mgmt: { ...defaults.mgmt },
     econ: { ...defaults.econ }, workload: { ...defaults.workload, context },
-    // Agent context also feeds requestedContext in sizeOption — keep it in-range.
+    // Anche il contesto degli agenti alimenta requestedContext in sizeOption — tienilo in range.
     agents: { ...defaults.agents, count: 0, context },
     rental: { ...defaults.rental },
     subs: { ...defaults.subs }, resale: { ...defaults.resale },
@@ -51,59 +51,59 @@ const yardsticks = [
   { modelId: "gpt-oss-120b", hardwareId: "h200-4x", profileId: "gptoss-h200-fp8", context: 8000 },
 ];
 
-console.log("\n— yardstick profiles match when context is in range —");
+console.log("\n— i profili yardstick vengono abbinati quando il contesto è in range —");
 for (const y of yardsticks) {
   const st = stateFor(y.modelId, y.context);
   const hw = byId(st.hardware, y.hardwareId);
   const s = sizeOption(hw, st, workload(st), profiles);
-  check(`${y.profileId} matched`, s.profileId, y.profileId);
-  truthy(`${y.profileId} fits`, s.fits);
+  check(`${y.profileId} abbinato`, s.profileId, y.profileId);
+  truthy(`${y.profileId} sta in piedi`, s.fits);
 }
 
-console.log("\n— precision gate: gpt-oss FP8 on H200, NVFP4 on B300 —");
+console.log("\n— gate di precisione: gpt-oss FP8 su H200, NVFP4 su B300 —");
 {
   const gpt = byId(models, "gpt-oss-120b");
   const h200 = byId(hardware, "h200-4x");
   const b300 = byId(hardware, "b300-1x");
   const onH200 = resolvePrecision(gpt, h200);
   const onB300 = resolvePrecision(gpt, b300);
-  check("H200 selects FP8", onH200.precision, "fp8");
-  truthy("H200 is compatible via FP8 fallback", onH200.compatible);
-  check("B300 keeps NVFP4 default", onB300.precision, "nvfp4");
+  check("H200 seleziona FP8", onH200.precision, "fp8");
+  truthy("H200 è compatibile via fallback FP8", onH200.compatible);
+  check("B300 mantiene NVFP4 di default", onB300.precision, "nvfp4");
 
   const deepseek = byId(models, "deepseek-v4-flash-0731");
   const dsH200 = resolvePrecision(deepseek, h200);
-  truthy("DeepSeek NVFP4-only still incompatible on H200", !dsH200.compatible);
+  truthy("DeepSeek solo NVFP4 resta incompatibile su H200", !dsH200.compatible);
 
   const forced = resolvePrecision(gpt, h200, "nvfp4");
-  truthy("explicit NVFP4 override on H200 stays incompatible", !forced.compatible);
-  check("explicit override precision is sticky", forced.precision, "nvfp4");
+  truthy("L'override esplicito NVFP4 su H200 resta incompatibile", !forced.compatible);
+  check("La precisione dell'override esplicito è persistente", forced.precision, "nvfp4");
 }
 
-console.log("\n— default Bindwidth contexts vs profile testedContext —");
+console.log("\n— contesti predefiniti di LocalAI-TCO rispetto al testedContext del profilo —");
 {
   const st = stateFor("gpt-oss-120b", defaults.workload.context);
-  st.agents = { ...defaults.agents }; // count 0, context 180k — idle agents must not count
+  st.agents = { ...defaults.agents }; // count 0, context 180k — gli agenti idle non devono contare
   const b300 = byId(st.hardware, "b300-1x");
   const s = sizeOption(b300, st, workload(st), profiles);
-  check("gpt-oss falls back at default people context (100k > 32k)", s.profileId, null);
-  truthy("fallback warns about testedContext",
+  check("gpt-oss ricade al contesto persone di default (100k > 32k)", s.profileId, null);
+  truthy("Il fallback avvisa su testedContext",
     s.warnings.some((w) => w.includes("tested only")));
 
-  // Idle agent window alone must not invalidate a profile.
+  // La sola finestra idle degli agenti non deve invalidare un profilo.
   const short = stateFor("gpt-oss-120b", 16000);
   short.agents = { ...defaults.agents, count: 0, context: 180000 };
   const shortSizing = sizeOption(b300, short, workload(short), profiles);
-  check("idle agent context ignored for profile match", shortSizing.profileId, "gptoss-b300-fp4");
+  check("Il contesto idle degli agenti è ignorato per l'abbinamento del profilo", shortSizing.profileId, "gptoss-b300-fp4");
 
   const qwen = stateFor("qwen3.6-35b-a3b", defaults.workload.context);
   qwen.agents = { ...defaults.agents };
   const spark = byId(qwen.hardware, "spark-2x");
   const qs = sizeOption(spark, qwen, workload(qwen), profiles);
-  check("Qwen Spark profile still matches default people context", qs.profileId, "qwen36-spark-nvfp4");
+  check("Il profilo Qwen Spark è abbinato anche al contesto persone di default", qs.profileId, "qwen36-spark-nvfp4");
 }
 
-console.log("\n— Qwen on Spark: single-stream estimate within 2× of profile low —");
+console.log("\n— Qwen su Spark: stima a singolo stream entro 2× dal minimo del profilo —");
 {
   const st = stateFor("qwen3.6-35b-a3b", 100000);
   const spark = byId(st.hardware, "spark-2x");
@@ -115,20 +115,20 @@ console.log("\n— Qwen on Spark: single-stream estimate within 2× of profile l
     profile.decode.low / estimated.singleStream
   );
   truthy(
-    `single-stream estimate (${estimated.singleStream.toFixed(1)}) vs profile low (${profile.decode.low}) within 2× (ratio ${ratio.toFixed(2)})`,
+    `stima a singolo stream (${estimated.singleStream.toFixed(1)}) contro il minimo del profilo (${profile.decode.low}) entro 2× (rapporto ${ratio.toFixed(2)})`,
     ratio <= 2
   );
-  truthy("matched profile overrides aggregate vs bandwidth estimate",
+  truthy("Il profilo abbinato sovrascrive l'aggregato rispetto alla stima via bandwidth",
     matched.aggregate === profile.decode.base && matched.aggregate !== estimated.aggregate);
-  // Aggregate at concurrency exceeds hardware.batching×single-stream; that is why the profile exists.
-  truthy("profile aggregate exceeds naive batching estimate (MTP + concurrency)",
+  // L'aggregato con concorrenza supera hardware.batching×singolo stream: è il motivo per cui esiste il profilo.
+  truthy("L'aggregato del profilo supera la stima naïve di batching (MTP + concorrenza)",
     profile.decode.base > estimated.singleStream * spark.batching);
 }
 
-console.log("\n— appliance-validated small MoE scales to datacenter SKUs —");
+console.log("\n— un piccolo MoE validato su appliance scala verso SKU datacenter —");
 {
-  // Qwen has a published Spark profile with strong continuous-batching aggregate.
-  // Larger SKUs should not collapse to the pessimistic catalogue eff×batching floor.
+  // Qwen ha un profilo Spark published con un forte aggregato con continuous batching.
+  // Gli SKU più grandi non devono collassare sul floor pessimistico eff×batching di catalogo.
   const st = stateFor("qwen3.6-35b-a3b", 32000);
   const spark = byId(st.hardware, "spark-2x");
   const sparkSizing = sizeOption(spark, st, workload(st), profiles);
@@ -138,36 +138,36 @@ console.log("\n— appliance-validated small MoE scales to datacenter SKUs —")
     const hw = byId(st.hardware, hwId);
     const s = sizeOption(hw, st, workload(st), profiles);
     const catalogueAgg = s.theoretical * hw.efficiency * hw.batching;
-    truthy(`${hwId} fits Qwen`, s.fits);
-    truthy(`${hwId} aggregate above catalogue floor`, s.aggregate > catalogueAgg * 1.05);
-    truthy(`${hwId} transfer warned`,
+    truthy(`${hwId} regge Qwen`, s.fits);
+    truthy(`${hwId} aggregato sopra il soglia di catalogo`, s.aggregate > catalogueAgg * 1.05);
+    truthy(`${hwId} trasferimento avvisato`,
       s.warnings.some((w) => w.includes("continuous-batching") || w.includes("transferred")));
-    // Transferred factor stays below the raw Spark production factor (haircut).
-    truthy(`${hwId} production factor below raw Spark factor`,
+    // Il fattore trasferito resta sotto il fattore di produzione grezzo dello Spark (haircut).
+    truthy(`${hwId} fattore di produzione sotto il fattore grezzo dello Spark`,
       s.productionFactor < sparkFactor);
   }
 
-  // DeepSeek Spark factor ≈ catalogue eff×batching — transfer must not invent uplift.
+  // Fattore Spark di DeepSeek ≈ eff×batching di catalogo — il trasferimento non deve inventare uplift.
   const ds = stateFor("deepseek-v4-flash-0731", 32000);
   const station = byId(ds.hardware, "station-gb300");
   const dsStation = sizeOption(station, ds, workload(ds), profiles);
   const dsCatalogue = dsStation.theoretical * station.efficiency * station.batching;
-  check("DeepSeek Station stays on catalogue floor", dsStation.aggregate, dsCatalogue, 0.001);
+  check("DeepSeek Station resta sul soglia di catalogo", dsStation.aggregate, dsCatalogue, 0.001);
 }
 
-console.log("\n— product default and DeepSeek KV resolution —");
+console.log("\n— default di prodotto e risoluzione KV di DeepSeek —");
 {
-  check("models[0] is Qwen3.6 35B-A3B", models[0].id, "qwen3.6-35b-a3b");
+  check("models[0] è Qwen3.6 35B-A3B", models[0].id, "qwen3.6-35b-a3b");
   const ds = byId(models, "deepseek-v4-flash-0731");
-  check("DeepSeek NVFP4 KV status resolved", ds.kvKbRange.status, "resolved");
-  check("DeepSeek NVFP4 KV base", ds.kvKbPerToken, 27.77);
+  check("Lo stato KV NVFP4 di DeepSeek è risolto", ds.kvKbRange.status, "resolved");
+  check("Valore base KV NVFP4 di DeepSeek", ds.kvKbPerToken, 27.77);
   const q35 = byId(models, "qwen3.5-397b-a17b");
   const b3004 = byId(hardware, "b300-4x");
   const st = stateFor("qwen3.5-397b-a17b", 4096);
   const s = sizeOption(b3004, st, workload(st), profiles);
-  check("Qwen3.5 matches b300-4x profile", s.profileId, "qwen35-b300-4x-nvfp4");
-  truthy("Qwen3.5 fits 4x B300", s.fits);
-  truthy("qwen3.5 model present", Boolean(q35));
+  check("Qwen3.5 è abbinato al profilo b300-4x", s.profileId, "qwen35-b300-4x-nvfp4");
+  truthy("Qwen3.5 regge su 4x B300", s.fits);
+  truthy("il modello qwen3.5 è presente", Boolean(q35));
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

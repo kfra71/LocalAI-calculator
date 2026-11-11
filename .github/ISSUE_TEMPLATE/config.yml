@@ -1,8 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Contribution guide
-    url: https://github.com/juxhinr/bindwidth/blob/main/CONTRIBUTING.md
-    about: How to add models, hardware, profiles, and benchmarks.
-  - name: Live calculator
-    url: https://juxhinr.github.io/bindwidth/
-    about: Try the tool before filing a bug or proposing catalogue data.
