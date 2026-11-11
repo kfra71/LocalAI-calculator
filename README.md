@@ -218,6 +218,33 @@ pubblicata di riferimento, e il suo profilo MoE con 3B attivi tiene la KV a 11,5
 KB/token. Qwen3.8 27B è più recente ma dense, e a parità di ingombro la sua KV per
 token è quasi tre volte più pesante.
 
+## Le configurazioni
+
+Il calcolatore mette in fila questi nodi, ciascuno con la banda e il prezzo che
+dichiarano:
+
+| Configurazione | GPU | Memoria | Banda | Prezzo | Per cosa serve |
+|---|---|---|---|---|---|
+| 2× DGX Spark | 2 GB10 | 200 GB | 546 GB/s | $9.398 | appliance: un modello da 22-140 GB in NVFP4 |
+| 4× DGX Spark (TP=4) | 4 GB10 | 400 GB | 1.092 GB/s | $18.796 | lo stesso modello con più concorrenza, o un checkpoint da 200-400 GB |
+| 8× DGX Spark (TP=8) | 8 GB10 | 800 GB | 2.184 GB/s | $37.592 | checkpoint NVFP4 da 200-510 GB |
+| DGX Station GB300 | 1 GB300 | 279 GB | 7.100 GB/s | $96.996 | l'appliance con HBM vero |
+| 2× / 4× RTX PRO 6000 | 2-4 | 192-384 GB | 3.580-7.160 GB/s | $41.500-73.000 | nodi consumer per modelli fino a 200 GB |
+| 8× RTX PRO 6000 | 8 | 768 GB | 14.320 GB/s | $146.000 | DeepSeek V4.1, MiniMax M3.1, Muse Spark Open in NVFP4 |
+| 4× / 8× H200 | 4-8 | 564-1.128 GB | 19,2-38,4 TB/s | $175k-350k | la generazione precedente |
+| 1× / 4× B300 | 1-4 | 288-1.152 GB | 8-32 TB/s | $83k-320k | datacenter Blackwell |
+
+**I checkpoint NVFP4 e FP4 entrano nei calcoli solo dove il gate lo consente.** Su
+Blackwell — Spark, RTX PRO 6000, B300 — i pesi restano nel loro ingombro reale: il
+DeepSeek V4.1 è 510 GB, MiniMax M3.1 252 GB, Muse Spark Open 533 GB, e le stime
+usano quelle cifre, non quelle del modello intero in FP8. Su Hopper non esistono
+tensor core FP4: i checkpoint NVFP4 restano esclusi e chi ha una variante FP8 ricade
+su FP8 con i pesi raddoppiati. È la differenza che decide quale hardware comprare.
+
+Le configurazioni con TP=4 e TP=8 hanno una banda aggregata che cresce meno della
+memoria, perché l'all-reduce attraversa il tessuto: per questo il prefill e
+l'efficienza di quei nodi sono stimati, e dichiarati come stime.
+
 ## Cosa questo strumento non vi dirà
 
 Se il premio valga la pena di essere pagato. Lo stima sull'intervallo di evidenze

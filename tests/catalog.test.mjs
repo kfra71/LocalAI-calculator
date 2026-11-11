@@ -123,5 +123,35 @@ check("il KV di Muse Spark cresce quando il contesto si accorcia",
 check("il KV di DeepSeek V4.1 viene dal budget di boot log del deployment",
   models.find((m) => m.id === "deepseek-v4.1-flash")?.kvKbPerToken === 1.67);
 
+// — configurazioni TP=4, TP=8 e nodi da 8 GPU, e i checkpoint FP4 nei calcoli —
+const hwById = (id) => hardware.find((h) => h.id === id);
+check("le configurazioni Spark TP=4 e TP=8 sono in catalogo",
+  hwById("spark-4x")?.gpus === 4 && hwById("spark-4x")?.memGb === 400 &&
+  hwById("spark-8x")?.gpus === 8 && hwById("spark-8x")?.memGb === 800);
+check("le configurazioni RTX PRO 6000 8x e H200 8x sono in catalogo",
+  hwById("rtxpro-8x")?.gpus === 8 && hwById("rtxpro-8x")?.memGb === 768 &&
+  hwById("h200-8x")?.gpus === 8 && hwById("h200-8x")?.memGb === 1128);
+const fp4Model = models.find((m) => m.id === "deepseek-v4.1-flash");
+check("i checkpoint NVFP4 entrano nei calcoli sulle configurazioni Blackwell",
+  ["spark-4x", "spark-8x", "rtxpro-8x"].every((id) => {
+    const r = resolvePrecision(fp4Model, hwById(id));
+    return r.compatible && r.precision === "nvfp4" && !r.fellBack &&
+      r.bytesPerParam === fp4Model.bytesPerParamByPrecision.nvfp4;
+  }));
+check("H200 non ha tensor core FP4: i checkpoint NVFP4 restano esclusi",
+  resolvePrecision(fp4Model, hwById("h200-8x")).compatible === false);
+check("su H200 i modelli con variante FP8 ricadono su FP8 con i pesi raddoppiati",
+  (() => {
+    const gpt = models.find((m) => m.id === "gpt-oss-120b");
+    const r = resolvePrecision(gpt, hwById("h200-8x"));
+    return r.compatible && r.precision === "fp8" && r.fellBack &&
+      r.bytesPerParam === gpt.bytesPerParamByPrecision.fp8;
+  })());
+check("la banda del profilo TP=4 di Spark è un aggregato di nodo",
+  (() => {
+    const p = profiles.find((x) => x.id === "qwen38-spark4-nvfp4");
+    return p?.hardwareId === "spark-4x" && p?.decode?.base === 216 && p?.decode?.low === 77.3;
+  })());
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

@@ -200,7 +200,7 @@
       "overheadPerGpu": 6,
       "license": "Apache-2.0",
       "confidence": "published",
-      "profileIds": ["qwen38-spark2-nvfp4", "qwen38-rtxpro2-nvfp4", "qwen38-station-nvfp4"],
+      "profileIds": ["qwen38-spark2-nvfp4", "qwen38-spark4-nvfp4", "qwen38-rtxpro2-nvfp4", "qwen38-station-nvfp4"],
       "sources": [
         "https://huggingface.co/Qwen/Qwen3.8-27B",
         "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4",
@@ -210,7 +210,7 @@
         "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/rtx-pro-6000/nvfp4-vllm-tp1-spec3/",
         "https://pi3g.com/dgx-station-gb300-benchmarking-15-small-and-mid-size-models-up-to-256-concurrent-requests/"
       ],
-      "notes": "Rilasciato il 2026-08-05, generazione successiva di Qwen3.6 35B-A3B: 27B dense, 64 layer (48 linear_attention + 16 full_attention), GQA con 24 query head e 4 KV head da 256, contesto nativo di 262.144 token estendibile a 1M con YaRN, Apache-2.0. Checkpoint NVIDIA NVFP4 da 21,92 GB (0,812 B/param) e FP8 ufficiale da 30,87 GB (1,143 B/param): i pesi scendono sotto i 24 GB, quindi il modello entra in un solo RTX PRO 6000 o in un solo Spark. KV a 32,8 KB/token con KV FP8 (16 layer full_attention × 4 KV head × 256 × K+V) e 65,5 KB/token in BF16: è il parametro che decide quante sessioni entrano, e qui è quasi tre volte più pesante del Qwen3.6 35B-A3B (11,58 KB/token). I 48 layer linear_attention mantengono uno stato ricorrente a dimensione fissa per slot di richiesta, in fp32 (mamba_ssm_dtype float32): è un costo per richiesta e non per token, e il motore non lo rappresenta. MTP con 3 draft e accettazione misurata 0,771-0,897, cioè 2,4 token accettati per passo escluso il token base: specTokens è volutamente conservativo, perché il percorso di stima divide la lettura dei pesi per i token accettati. I profili decode sono community e il prefill dei profili è stimato dal catalogo hardware."
+      "notes": "Rilasciato il 2026-08-05, generazione successiva di Qwen3.6 35B-A3B: 27B dense, 64 layer (48 linear_attention + 16 full_attention), GQA con 24 query head e 4 KV head da 256, contesto nativo di 262.144 token estendibile a 1M con YaRN, Apache-2.0. Checkpoint NVIDIA NVFP4 da 21,92 GB (0,812 B/param) e FP8 ufficiale da 30,87 GB (1,143 B/param): i pesi scendono sotto i 24 GB, quindi il modello entra in un solo RTX PRO 6000 o in un solo Spark. KV a 32,8 KB/token con KV FP8 (16 layer full_attention × 4 KV head × 256 × K+V) e 65,5 KB/token in BF16: è il parametro che decide quante sessioni entrano, e qui è quasi tre volte più pesante del Qwen3.6 35B-A3B (11,58 KB/token). I 48 layer linear_attention mantengono uno stato ricorrente a dimensione fissa per slot di richiesta, in fp32 (mamba_ssm_dtype float32): è un costo per richiesta e non per token, e il motore non lo rappresenta. MTP con 3 draft e accettazione misurata 0,771-0,897, cioè 2,4 token accettati per passo escluso il token base: specTokens è volutamente conservativo, perché il percorso di stima divide la lettura dei pesi per i token accettati. Sul nodo TP=4 a 4× DGX Spark lo stesso stack porta il C1 da 51,8 a 77,3 tok/s e l'aggregato a C8 a 216,0: è il profilo qwen38-spark4-nvfp4. I profili decode sono community e il prefill dei profili è stimato dal catalogo hardware."
     },
     {
       "id": "qwen3.8-flash-next",

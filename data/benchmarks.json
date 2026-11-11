@@ -208,25 +208,33 @@
       "date": "2026-08-24",
       "confidence": "community",
       "model": "Qwen3.8 27B NVFP4",
-      "hardware": "2x DGX Spark (200 GB) con TP=2",
-      "config": "SGLang con checkpoint RadixArk NVFP4 e draft DSpark (MTP n=3) su 2 nodi Spark in TP=2; in parallelo build vLLM Inflightact + MTP n=3 e lo sweep su 1 e 4 Spark per il confronto delle configurazioni.",
+      "hardware": "2x DGX Spark (200 GB) con TP=2 e 4x DGX Spark (400 GB) con TP=4",
+      "config": "SGLang con checkpoint RadixArk NVFP4 e draft DSpark su 2 nodi Spark in TP=2 e su 4 nodi in TP=4 (blocco 7 draft); in parallelo build vLLM Inflightact + MTP n=3 e lo sweep su 1, 2 e 4 Spark per il confronto delle configurazioni. Benchmark con lo strumento CordatusAI, 128 token in e 128 out.",
       "metrics": [
         { "label": "SGLang + DSpark, C1", "value": "51,8 tok/s per richiesta", "note": "TTFT 219 ms" },
         { "label": "Aggregato a C8", "value": "199,2 tok/s", "note": "24,9 tok/s per richiesta" },
         { "label": "Aggregato a C16", "value": "267,2 tok/s", "note": "16,7 tok/s per richiesta; TTFT 460 ms" },
         { "label": "Aggregato a C32", "value": "310,4 tok/s", "note": "9,7 tok/s per richiesta; TTFT 5.682 ms, oltre il bersaglio di 1 s" },
-        { "label": "vLLM + MTP n=3, C1", "value": "23,4 tok/s per richiesta", "note": "TTFT 254 ms; è la build più lenta delle tre misurate" }
+        { "label": "vLLM + MTP n=3, C1", "value": "23,4 tok/s per richiesta", "note": "TTFT 254 ms; è la build più lenta delle tre misurate" },
+        { "label": "TP=4 su 4 Spark, C1", "value": "77,3 tok/s per richiesta", "note": "TTFT 227 ms; lo stesso stack del nodo 2× porta il C1 da 51,8 a 77,3 tok/s" },
+        { "label": "TP=4 su 4 Spark, aggregato a C8", "value": "216,0 tok/s", "note": "27,0 tok/s per richiesta" },
+        { "label": "TP=4 su 4 Spark, aggregato a C16", "value": "297,6 tok/s", "note": "18,6 tok/s per richiesta; l'ultimo livello che lo studio marca come sostenibile" },
+        { "label": "TP=4 su 4 Spark, aggregato a C32", "value": "352,0 tok/s", "note": "11,0 tok/s per richiesta; lo studio lo marca ✗ sul criterio TPS" },
+        { "label": "Misura indipendente su 4 Spark", "value": "86,51 tok/s a C1", "note": "stessa forma TP=4 con draft k=8: 68,35 a C2, 51,98 a C4, 27,83 a C8" }
       ],
-      "qualification": "Studio community sul forum NVIDIA con sweep di concorrenza e di parallelismo su 2 nodi Spark: è la misura con la topologia che combacia con lo SKU spark-2x del catalogo.",
+      "qualification": "Studio community sul forum NVIDIA con sweep di concorrenza e di parallelismo su 1, 2 e 4 nodi Spark: le righe TP=2 e TP=4 combaciano con gli SKU spark-2x e spark-4x del catalogo.",
       "caveats": [
         "Le misure sono per richiesta: l'aggregato è per-request per concorrenza, ed è l'aggregato che il motore confronta con la domanda di token/s del carico.",
         "A C32 il TTFT di 5,68 s sfora il bersaglio di 1 s: il profilo tiene base = aggregato a C8 e high = aggregato a C32, annotando che high non è utilizzabile sotto il vincolo di latenza.",
+        "Sul nodo TP=4 lo studio marca C32 come ✗ sul criterio TPS (352 tok/s aggregati esistono ma non è un livello sostenibile): il profilo spark-4x tiene high = aggregato a C16 e maxSeqs 16.",
+        "Lo sweep usa prompt brevi (128 token in, 128 out): il decode di un modello dense è dominato dalla lettura dei pesi, quindi la banda trasferisce bene a contesto lungo, mentre il vincolo della KV per sessione resta quello del modello.",
         "Post di forum: non è una misura first-party del vendor, e le tre build confrontate non hanno la stessa acceptance.",
         "Nessun prefill in tok/s pubblicato: il prefill del profilo è stimato dal catalogo hardware."
       ],
       "sources": [
         "https://forums.developer.nvidia.com/t/comprehensive-qwen3-8-27b-study-on-dgx-sparks-quantization-speculative-decoding-and-tp-dp-scaling/381102",
-        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/1x-dgx-spark/nvfp4-sglang-tp1-spec8/"
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/1x-dgx-spark/nvfp4-sglang-tp1-spec8/",
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/4x-dgx-spark/nvfp4-sglang-tp4-spec8/"
       ]
     },
     {
