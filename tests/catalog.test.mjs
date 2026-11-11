@@ -152,6 +152,16 @@ check("la banda del profilo TP=4 di Spark è un aggregato di nodo",
     const p = profiles.find((x) => x.id === "qwen38-spark4-nvfp4");
     return p?.hardwareId === "spark-4x" && p?.decode?.base === 216 && p?.decode?.low === 77.3;
   })());
+check("il tier DRAM ospite è dichiarato solo dove esiste",
+  (() => {
+    const ds = models.find((m) => m.id === "deepseek-v4.1-flash");
+    const station = hardware.find((h) => h.id === "station-gb300");
+    const profilo = profiles.find((p) => p.id === "deepseek41-station-nvfp4");
+    return ds.hostOffloadGb > 0 && station.hostMemGb > 0 &&
+      profilo?.hardwareId === "station-gb300" && profilo?.confidence === "published";
+  })());
+check("nessun altro nodo dichiara un tier DRAM ospite",
+  hardware.filter((h) => h.hostMemGb).every((h) => h.id === "station-gb300"));
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

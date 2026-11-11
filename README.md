@@ -254,6 +254,15 @@ che altrove non entrano: DeepSeek V4.1 Flash (510 GB), MiniMax M3.1 (252 GB),
 Muse Spark Open (533 GB). Per un modello da 22-140 GB sono dominate da nodi più
 piccoli, e la tabella li mostra con la loro cifra perché il confronto spetti a te.
 
+**Un nodo con due tier di memoria.** La DGX Station GB300 ha 279 GB di HBM3e e
+496 GB di LPDDR5X Grace: 784 GB in totale, di cui 496 sono DRAM di sistema, letti
+via UVA. Un checkpoint più grande dell'HBM ci sta **solo** se esiste una ricetta
+published che tiene la parte fredda nel tier ospite: DeepSeek V4.1 Flash lo fa,
+e il tool lo dimensiona con i numeri misurati (90,5 tok/s a stream singolo, fino
+a 423 aggregati a 16 richieste, pool KV di 3,09M token a 1M di contesto). Su un
+nodo senza tier ospite quei 267 GB non ci stanno e la riga resta fuori — con il
+motivo per cui.
+
 ## Cosa questo strumento non vi dirà
 
 Se il premio valga la pena di essere pagato. Lo stima sull'intervallo di evidenze

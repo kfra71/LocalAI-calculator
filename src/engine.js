@@ -273,8 +273,23 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     : null;
   const warnings = [];
 
-  const overhead = (m.overheadPerGpu || 0) * hw.gpus + (hw.memReserveGb ?? 0);
-  const freeGb = hw.memGb - weightsGb - overhead;
+  // Due tier di memoria: quello veloce (HBM/VRAM) e quello ospite (Grace
+  // LPDDR5X, DRAM di sistema). Un checkpoint più grande del tier veloce si
+  // può servire solo se esiste una ricetta published che tiene la parte
+  // "fredda" nel tier ospite: l'overflow non è gratis, si legge su un
+  // percorso molto più lento, e la banda utile scende con la quota di pesi
+  // che resta in HBM.
+  const hostMemGb = hw.hostMemGb || 0;
+  const spillGb = Math.min(m.hostOffloadGb || 0, hostMemGb);
+  const spilled = spillGb > 0;
+  // Il sovraccarico è del modello (grafici CUDA, piano del draft, frammentazione).
+  // La ricetta con l'overflow in DRAM ospite aggiunge la riserva che il recipe
+  // vendor tiene in HBM: blocco di attivazione del chunked prefill a 1M di
+  // contesto e margine di memory-utilization.
+  const overhead = (m.overheadPerGpu || 0) * hw.gpus + (hw.memReserveGb ?? 0) +
+    (spilled ? (m.hostOffloadReserveGb || 0) : 0);
+  const weightsFastGb = Math.max(0, weightsGb - spillGb);
+  const freeGb = hw.memGb - weightsFastGb - overhead;
   const kvRange = range(m.kvKbRange, m.kvKbPerToken);
   const kvKbPerToken = sensitivity === "low"
     ? kvRange.high
@@ -285,7 +300,10 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     ? (freeGb * 1e6) / kvKbPerToken
     : 0;
 
-  const theoretical = safeDiv(hw.bandwidth, gbPerToken);
+  const effectiveBandwidth = spilled
+    ? hw.bandwidth * Math.max(0.05, weightsFastGb / weightsGb)
+    : hw.bandwidth;
+  const theoretical = safeDiv(effectiveBandwidth, gbPerToken);
   const catalogueFactor = (hw.efficiency || 0) * (hw.batching || 1);
   const singleStream = theoretical * (hw.efficiency || 0);
   let productionFactor = catalogueFactor;
@@ -320,11 +338,18 @@ export function sizeOption(hw, st, wl, profiles = [], sensitivity = "base") {
     );
   } else if (freeGb <= 0) {
     fitIssues.push(
-      `I pesi del checkpoint (${Math.round(weightsGb)} GB) non entrano nei ${Math.round(hw.memGb)} GB di memoria del nodo.`
+      spilled
+        ? `Con ${Math.round(spillGb)} GB in DRAM ospite, pesi e sovraccarico non entrano nei ${Math.round(hw.memGb)} GB di HBM del nodo.`
+        : `I pesi del checkpoint (${Math.round(weightsGb)} GB) non entrano nei ${Math.round(hw.memGb)} GB di memoria del nodo.`
     );
     if (m.hostOffloadNote) fitIssues.push(m.hostOffloadNote);
   } else if (!finitePositive(aggregate) || !finitePositive(prefill)) {
     fitIssues.push("Il nodo non ha una capacità di decode o prefill utilizzabile per questo checkpoint.");
+  }
+  if (spilled) {
+    warnings.push(
+      `${Math.round(spillGb)} GB dei pesi restano nel tier DRAM ospite (${Math.round(hostMemGb)} GB di LPDDR5X di sistema) e si leggono via UVA: il decode è limitato dalla banda di quel percorso, non da quella dell'HBM.`
+    );
   }
   if (!derived.compatible) {
     warnings.push(

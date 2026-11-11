@@ -293,6 +293,20 @@
       "sourceBenchmark": "qwen38-dgx-spark-2026-08"
     },
     {
+      "id": "deepseek41-station-nvfp4",
+      "modelId": "deepseek-v4.1-flash",
+      "hardwareId": "station-gb300",
+      "runtime": "vLLM su 1× DGX Station GB300 in TP=1 con 267 GB del checkpoint in DRAM ospite letti via UVA (--cpu-offload-gb 60), KV fp8_ds_mla, DSpark con 5 token di draft, ricetta vLLM",
+      "decode": { "low": 90.5, "base": 302, "high": 423 },
+      "prefill": { "low": 43026, "base": 43026, "high": 43026 },
+      "prefillConfidence": "estimated",
+      "prefillSource": "Prefill dal catalogo hardware Station: la ricetta vLLM non pubblica il prefill in tok/s.",
+      "maxSeqs": 24,
+      "testedContext": 1048576,
+      "confidence": "published",
+      "sourceBenchmark": "deepseek41-station-2026-11"
+    },
+    {
       "id": "muse-spark-b300-4x",
       "modelId": "muse-spark-open-816b-a42b",
       "hardwareId": "b300-4x",

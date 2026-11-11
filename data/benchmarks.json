@@ -418,6 +418,28 @@
       ]
     },
     {
+      "id": "deepseek41-station-2026-11",
+      "date": "2026-11-09",
+      "confidence": "published",
+      "model": "DeepSeek V4.1 Flash (checkpoint misto MXFP4/MXFP8 da 476 GiB)",
+      "hardware": "1x DGX Station GB300 (279 GB HBM3e + 496 GB LPDDR5X Grace)",
+      "config": "vLLM su una DGX Station in TP=1 con --cpu-offload-gb 60: le tabelle Engram (189 GiB) e 60 GiB di esperti instradati restano in DRAM ospite e si leggono via UVA, --max-model-len 1048576, --max-num-seqs 24, --kv-cache-dtype fp8_ds_mla, --gpu-memory-utilization 0.97, DSpark con 5 token di draft.",
+      "metrics": [
+        { "label": "1 stream", "value": "90,5 tok/s aggregati", "note": "su una sola GPU: la parte del checkpoint fuori dall'HBM viaggia su PCIe" },
+        { "label": "4 stream", "value": "168 tok/s aggregati", "note": "" },
+        { "label": "8 stream", "value": "302 tok/s aggregati", "note": "" },
+        { "label": "16 stream", "value": "416-423 tok/s aggregati", "note": "il picco misurato" },
+        { "label": "Pool KV", "value": "3,09M token", "note": "a 1M di contesto con --gpu-memory-utilization 0,97" }
+      ],
+      "qualification": "Ricetta vLLM pubblicata con la tabella di misure per livello di concorrenza: è un aggregato di nodo, cioè il numero che il motore confronta con la domanda del carico.",
+      "caveats": [
+        "267 GB del checkpoint vivono in DRAM di sistema e si leggono via UVA: il decode è molto più lento di un deployment con lo stesso checkpoint tutto in HBM, e i profili dei nodi con HBM pieno non sono confrontabili con questo.",
+        "Il pool KV di 3,09M token è ciò che resta dell'HBM dopo pesi residenti, attivazioni e grafi: con il contesto da 1M ci stanno poche sessioni lunghe in contemporanea.",
+        "Nessun prefill in tok/s pubblicato: il prefill del profilo è stimato dal catalogo hardware."
+      ],
+      "sources": ["https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash"]
+    },
+    {
       "id": "muse-spark-vllm-2026-10",
       "date": "2026-10-15",
       "confidence": "published",

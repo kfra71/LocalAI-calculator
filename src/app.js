@@ -1274,6 +1274,15 @@ function App({ catalog }) {
         }
         next.model = { ...cat, ...edited };
       }
+      // Anche l'hardware torna al catalogo: l'unico campo che l'utente decide
+      // è se la riga resta nel confronto.
+      const catHw = new Map(catalog.hardware.hardware.map((h) => [h.id, h]));
+      if (Array.isArray(next.hardware)) {
+        next.hardware = next.hardware.map((h) => {
+          const entry = catHw.get(h.id);
+          return entry ? { ...entry, enabled: h.enabled !== false } : h;
+        });
+      }
       setSt(next);
       const migrated = data.migrationsApplied?.length
         ? ` Migrato: ${data.migrationsApplied.join(", ")}.`

@@ -465,18 +465,25 @@ console.log("\n— le righe escluse dicono perché sono escluse —");
   st.model = { ...models.models.find((m) => m.id === "deepseek-v4.1-flash") };
   const r = compute(st, profiles);
   const station = r.options.find((o) => o.hw.id === "station-gb300");
-  truthy("la stazione è esclusa perché i pesi non entrano",
-    !station.eligibility.eligible &&
-    station.eligibility.reasons.some((x) => x.includes("non entrano nei 279 GB")));
-  truthy("la stazione spiega il percorso con DRAM ospite",
-    station.eligibility.reasons.some((x) => x.includes("DRAM ospite")));
+  truthy("la stazione ospita il checkpoint con la ricetta published in DRAM ospite",
+    station.eligibility.eligible &&
+    station.sizing.profileId === "deepseek41-station-nvfp4");
+  check("il decode della stazione è quello misurato", station.sizing.aggregate, 302, 0.001);
+  truthy("il pool KV della stazione reproduce quello pubblicato (3,09M token)",
+    Math.abs(station.sizing.kvTokens - 3_090_000) / 3_090_000 < 0.15);
+  truthy("il nodo avvisa che parte dei pesi vive in DRAM ospite",
+    station.sizing.warnings.some((x) => x.includes("DRAM ospite")));
+  const spark2 = r.options.find((o) => o.hw.id === "spark-2x");
+  truthy("senza tier DRAM ospite il checkpoint non entra",
+    !spark2.eligibility.eligible &&
+    spark2.eligibility.reasons.some((x) => x.includes("non entrano nei 200 GB")));
   const h200 = r.options.find((o) => o.hw.id === "h200-4x");
   truthy("H200 è escluso per la precisione, non per la memoria",
     h200.eligibility.reasons.some((x) => x.includes("precisione del checkpoint")));
   truthy("nessuna riga ripete il messaggio generico",
     !r.options.some((o) => o.eligibility.reasons.includes("Il modello non entra o il deployment è incompatibile.")));
   truthy("una riga che non entra non parla di quantità manuale",
-    !station.eligibility.reasons.some((x) => x.includes("quantità manuale")));
+    !spark2.eligibility.reasons.some((x) => x.includes("quantità manuale")));
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

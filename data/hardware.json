@@ -90,11 +90,12 @@
       "class": "appliance",
       "gpus": 1,
       "memGb": 279,
+      "hostMemGb": 496,
       "bandwidth": 7100,
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 0,
-      "profileIds": ["laguna-station-measured", "gptoss-station-fp4", "qwen36-station-nvfp4", "qwen38-station-nvfp4", "qwen38fn-station-nvfp4", "glm53-station-nvfp4"],
+      "profileIds": ["laguna-station-measured", "gptoss-station-fp4", "qwen36-station-nvfp4", "qwen38-station-nvfp4", "qwen38fn-station-nvfp4", "glm53-station-nvfp4", "deepseek41-station-nvfp4"],
       "priceUsd": 96996,
       "prefill": 43026,
       "infraPerUnit": 5000,
@@ -107,7 +108,7 @@
       "batching": 9.6,
       "confidence": "measured",
       "topology": "TP=1, repliche indipendenti",
-      "notes": "Calibrato su un'esecuzione dell'operatore: 59.59 tok/s a stream singolo, 571-652 aggregato con 10 agenti a contesto 262K, solo HBM, zero preemption. 748 GB totali ma solo 252 GB sono HBM3e: un modello che sfora nel tier LPDDR5X perde circa un ordine di grandezza sul decode.",
+      "notes": "Calibrato su un'esecuzione dell'operatore: 59.59 tok/s a stream singolo, 571-652 aggregato con 10 agenti a contesto 262K, solo HBM, zero preemption. 784 GB totali: 279 GB di HBM3e veloce e 496 GB di LPDDR5X Grace, che è DRAM di sistema e si legge via UVA. Un checkpoint più grande dell'HBM ci sta solo se esiste una ricetta published che tiene la parte fredda nel tier ospite (DeepSeek V4.1 lo fa: vedi il profilo deepseek41-station-nvfp4), e in quel caso il decode è limitato dalla banda del percorso PCIe, che è un ordine di grandezza sotto l'HBM.",
       "sovereign": true
     },
     {
