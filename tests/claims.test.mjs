@@ -37,7 +37,6 @@ const required = [
   "modifica la tempistica dei pagamenti, non l'impegno totale non scontato",
   "Prefill di picco",
   "minimo tecnico",
-  "consultivo e non è incluso nel TCO",
   "localai-tco.dinova.one",
   "Autore: Juxhin Radhima",
 ];
@@ -64,6 +63,15 @@ for (const text of forbidden) {
 }
 checkProject("il copy di progetto dichiara il serving combinato",
   projectCopy.includes("serving combinato prefill/decode"));
+// La sezione "Questo strumento è ancora lo strumento giusto" ha tre formulazioni
+// (fuori dominio, al limite, nel dominio) a seconda della soluzione più economica:
+// la guardia verifica che il report dichiari sempre il controllo su infrastruttura
+// e bus factor, qualunque sia il ramo.
+const domainVerdicts = ["Fuori dominio", "Al limite", "Nel dominio"];
+checkProject("il report dichiara il controllo su infrastruttura e bus factor",
+  markdown.includes("Questo strumento è ancora lo strumento giusto") &&
+  markdown.includes("bus factor") &&
+  domainVerdicts.some((v) => markdown.includes(v)));
 checkProject("il copy di progetto dichiara l'ambito direzionale",
   projectCopy.includes("stimatore di sensibilità direzionale"));
 checkProject("il copy di progetto identifica le prove di runtime fissate",

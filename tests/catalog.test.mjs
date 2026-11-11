@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolvePrecision } from "../src/engine.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -77,9 +78,50 @@ check("i profileIds dei modelli si risolvono",
   models.every((m) => (m.profileIds || []).every((id) => profiles.some((p) => p.id === id))));
 check("i profileIds dell'hardware si risolvono",
   hardware.every((h) => (h.profileIds || []).every((id) => profiles.some((p) => p.id === id))));
+check("i profili elencati dai modelli sono di quel modello",
+  models.every((m) => (m.profileIds || []).every((id) => profiles.some((p) => p.id === id && p.modelId === m.id))));
+check("ogni profilo è elencato dal modello che lo usa",
+  profiles.every((p) => models.some((m) => m.id === p.modelId && (m.profileIds || []).includes(p.id))));
+check("i profili elencati dall'hardware sono di quell'hardware",
+  hardware.every((h) => (h.profileIds || []).every((id) => profiles.some((p) => p.id === id && p.hardwareId === h.id))));
+check("ogni profilo è elencato dall'hardware che lo ospita",
+  profiles.every((p) => hardware.some((h) => h.id === p.hardwareId && (h.profileIds || []).includes(p.id))));
 check("i profili yardstick coprono gli SKU appliance e datacenter",
   ["qwen36-spark-nvfp4", "qwen36-rtxpro2-nvfp4", "gptoss-b300-fp4", "gptoss-station-fp4", "gptoss-h200-fp8", "qwen35-b300-4x-nvfp4"]
     .every((id) => profiles.some((p) => p.id === id)));
+
+// — ondata 2026: modelli e ricette pubblicate di nuovo —
+check("i modelli dell'ondata 2026 sono presenti",
+  ["qwen3.8-27b", "qwen3.8-flash-next", "deepseek-v4.1-flash", "nemotron-3.5-super-vl-120b-a12b",
+    "glm-5.3-flash", "minimax-m3.1-flash", "muse-spark-open-816b-a42b"]
+    .every((id) => models.some((m) => m.id === id)));
+check("le ricette dell'ondata 2026 sono tutte agganciate",
+  ["qwen36-station-nvfp4", "qwen38-spark2-nvfp4", "qwen38-rtxpro2-nvfp4", "qwen38-station-nvfp4",
+    "qwen38fn-spark2-nvfp4", "qwen38fn-rtxpro2-nvfp4", "qwen38fn-station-nvfp4",
+    "deepseek41-b300-4x", "nemotron35-super-b300-1x", "glm53-station-nvfp4", "minimax31-b300-4x"]
+    .every((id) => profiles.some((p) => p.id === id)));
+check("ogni profilo usa un checkpoint che l'hardware del profilo può servire",
+  profiles.every((p) => {
+    const m = models.find((x) => x.id === p.modelId);
+    const h = hardware.find((x) => x.id === p.hardwareId);
+    return Boolean(m && h) && resolvePrecision(m, h).compatible;
+  }));
+check("il KV di Qwen3.8 27B è il dato pubblicato da SGLang",
+  models.find((m) => m.id === "qwen3.8-27b")?.kvKbRange?.status === "published" &&
+  models.find((m) => m.id === "qwen3.8-27b")?.kvKbPerToken === 32.8);
+check("il KV di DeepSeek V4.1 è dichiarato come derivato dal deployment",
+  models.find((m) => m.id === "deepseek-v4.1-flash")?.kvKbRange?.status === "kv-derived");
+check("DeepSeek V4.1 usa il checkpoint servito da 476 GiB",
+  models.find((m) => m.id === "deepseek-v4.1-flash")?.bytesPerParam === 0.669);
+check("il contesto di Nemotron 3.5 Super VL è quello del suo config",
+  models.find((m) => m.id === "nemotron-3.5-super-vl-120b-a12b")?.maxContext === 1048576);
+check("Muse Spark usa la curva di nodo pubblicata dal vendor",
+  (models.find((m) => m.id === "muse-spark-open-816b-a42b")?.profileIds || []).includes("muse-spark-b300-4x"));
+check("il KV di Muse Spark cresce quando il contesto si accorcia",
+  models.find((m) => m.id === "muse-spark-open-816b-a42b")?.kvKbRange?.high >
+    models.find((m) => m.id === "muse-spark-open-816b-a42b")?.kvKbRange?.low);
+check("il KV di DeepSeek V4.1 viene dal budget di boot log del deployment",
+  models.find((m) => m.id === "deepseek-v4.1-flash")?.kvKbPerToken === 1.67);
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

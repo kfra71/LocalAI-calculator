@@ -139,9 +139,19 @@ console.log("\n— un piccolo MoE validato su appliance scala verso SKU datacent
     const s = sizeOption(hw, st, workload(st), profiles);
     const catalogueAgg = s.theoretical * hw.efficiency * hw.batching;
     truthy(`${hwId} regge Qwen`, s.fits);
-    truthy(`${hwId} aggregato sopra il soglia di catalogo`, s.aggregate > catalogueAgg * 1.05);
-    truthy(`${hwId} trasferimento avvisato`,
-      s.warnings.some((w) => w.includes("continuous-batching") || w.includes("transferred")));
+    if (s.profileId) {
+      // SKU con una ricetta misurata per questo modello: l'aggregato è la misura
+      // e non il trasferimento da un altro SKU.
+      truthy(`${hwId} usa la ricetta misurata`, s.profileId === "qwen36-station-nvfp4");
+      const measured = byId(profiles, s.profileId);
+      check(`${hwId} aggregato pari alla banda del profilo`, s.aggregate, measured.decode.base, 0.001);
+      truthy(`${hwId} non dichiara un trasferimento`,
+        !s.warnings.some((w) => w.includes("trasferito da")));
+    } else {
+      truthy(`${hwId} aggregato sopra il soglia di catalogo`, s.aggregate > catalogueAgg * 1.05);
+      truthy(`${hwId} trasferimento avvisato`,
+        s.warnings.some((w) => w.includes("continuous-batching") || w.includes("transferred")));
+    }
     // Il fattore trasferito resta sotto il fattore di produzione grezzo dello Spark (haircut).
     truthy(`${hwId} fattore di produzione sotto il fattore grezzo dello Spark`,
       s.productionFactor < sparkFactor);
@@ -153,6 +163,32 @@ console.log("\n— un piccolo MoE validato su appliance scala verso SKU datacent
   const dsStation = sizeOption(station, ds, workload(ds), profiles);
   const dsCatalogue = dsStation.theoretical * station.efficiency * station.batching;
   check("DeepSeek Station resta sul soglia di catalogo", dsStation.aggregate, dsCatalogue, 0.001);
+}
+
+console.log("\n— le ricette dell'ondata 2026 sostituiscono la stima di bandwidth —");
+{
+  const st = stateFor("qwen3.8-27b", 32000);
+  const spark = byId(st.hardware, "spark-2x");
+  const sparkSizing = sizeOption(spark, st, workload(st), profiles);
+  truthy("Qwen3.8 su Spark usa la ricetta misurata", sparkSizing.profileId === "qwen38-spark2-nvfp4");
+  const sparkProfile = byId(profiles, "qwen38-spark2-nvfp4");
+  check("l'aggregato è la banda del profilo", sparkSizing.aggregate, sparkProfile.decode.base, 0.001);
+  truthy("nessun avviso di stima quando il profilo c'è",
+    !sparkSizing.warnings.some((w) => w.includes("Nessun profilo esatto")));
+
+  const station = byId(st.hardware, "station-gb300");
+  const stationSizing = sizeOption(station, st, workload(st), profiles);
+  truthy("Qwen3.8 su Station usa la campagna community",
+    stationSizing.profileId === "qwen38-station-nvfp4");
+  check("il KV di Qwen3.8 è quello pubblicato", stationSizing.kvKbPerToken, 32.8, 0.001);
+
+  // Il modello con una curva di nodo pubblicata usa il profilo invece della stima.
+  const muse = stateFor("muse-spark-open-816b-a42b", 32000);
+  const museSizing = sizeOption(byId(muse.hardware, "b300-4x"), muse, workload(muse), profiles);
+  truthy("Muse Spark usa la curva di nodo del vendor", museSizing.profileId === "muse-spark-b300-4x");
+  check("l'aggregato di Muse Spark è la banda del profilo", museSizing.aggregate, 1910, 0.001);
+  truthy("Muse Spark non avvisa che è una stima",
+    !museSizing.warnings.some((w) => w.includes("Nessun profilo esatto")));
 }
 
 console.log("\n— default di prodotto e risoluzione KV di DeepSeek —");

@@ -13,7 +13,7 @@
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 0,
-      "profileIds": ["deepseek-spark-published", "qwen36-spark-nvfp4"],
+      "profileIds": ["deepseek-spark-published", "qwen36-spark-nvfp4", "qwen38-spark2-nvfp4", "qwen38fn-spark2-nvfp4"],
       "priceUsd": 9398,
       "prefill": 2639,
       "infraPerUnit": 2200,
@@ -40,7 +40,7 @@
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 0,
-      "profileIds": ["laguna-station-measured", "gptoss-station-fp4"],
+      "profileIds": ["laguna-station-measured", "gptoss-station-fp4", "qwen36-station-nvfp4", "qwen38-station-nvfp4", "qwen38fn-station-nvfp4", "glm53-station-nvfp4"],
       "priceUsd": 96996,
       "prefill": 43026,
       "infraPerUnit": 5000,
@@ -67,7 +67,7 @@
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 8,
-      "profileIds": ["deepseek-rtxpro-community", "qwen36-rtxpro2-nvfp4"],
+      "profileIds": ["deepseek-rtxpro-community", "qwen36-rtxpro2-nvfp4", "qwen38-rtxpro2-nvfp4", "qwen38fn-rtxpro2-nvfp4"],
       "priceUsd": 41500,
       "prefill": 12000,
       "infraPerUnit": 7000,
@@ -80,7 +80,7 @@
       "batching": 6.0,
       "confidence": "estimated",
       "topology": "TP=2 su PCIe Gen5",
-      "notes": "Prezzo stimato: le configurazioni con meno di 8 GPU sono molto meno standardizzate di HGX. Un'esecuzione community DeepSeek ha misurato un'efficienza del 28.5% e un batching di 1.66x, non applicati: il riferimento Qwen3.6 bf16 a stream singolo (~218 tok/s su una scheda) è coerente con mantenere l'efficienza vicino a 0.06 per il percorso di stima della bandwidth. Preferisci i profili corrispondenti (deepseek-rtxpro-community, qwen36-rtxpro2-nvfp4) alla stima quando il modello corrisponde.",
+      "notes": "Prezzo stimato: le configurazioni con meno di 8 GPU sono molto meno standardizzate di HGX. Un'esecuzione community DeepSeek ha misurato un'efficienza del 28.5% e un batching di 1.66x, non applicati: il riferimento Qwen3.6 bf16 a stream singolo (~218 tok/s su una scheda) è coerente con mantenere l'efficienza vicino a 0.06 per il percorso di stima della bandwidth. Preferisci i profili corrispondenti (deepseek-rtxpro-community, qwen36-rtxpro2-nvfp4, qwen38-rtxpro2-nvfp4, qwen38fn-rtxpro2-nvfp4) alla stima quando il modello corrisponde: i due profili Qwen3.8 sono misurati su una sola scheda e valgono come pavimento per scheda del nodo a due schede.",
       "sovereign": true
     },
     {
@@ -148,7 +148,7 @@
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 8,
-      "profileIds": ["gptoss-b300-fp4"],
+      "profileIds": ["gptoss-b300-fp4", "nemotron35-super-b300-1x"],
       "priceUsd": 83000,
       "prefill": 35000,
       "infraPerUnit": 28000,
@@ -161,7 +161,7 @@
       "batching": 8.0,
       "confidence": "estimated",
       "topology": "GPU singola, TP=1",
-      "notes": "288 GB su una GPU significano nessun tensor parallelism. 1,400 W per GPU: il raffreddamento ad aria non è praticabile, il raffreddamento liquido diretto è obbligatorio, ed è per questo che il costo dell'infrastruttura è più del doppio rispetto agli altri nodi. NVIDIA non pubblica prezzi al dettaglio: il dato di ~$53k per GPU è una stima di mercato. gptoss-b300-fp4 è derived dalle tabelle TRT-LLM B200 (B300 ≠ B200); lascia l'efficienza a 0.05 per il percorso di stima e usa il profilo corrispondente quando dimensioni gpt-oss.",
+      "notes": "288 GB su una GPU significano nessun tensor parallelism. 1,400 W per GPU: il raffreddamento ad aria non è praticabile, il raffreddamento liquido diretto è obbligatorio, ed è per questo che il costo dell'infrastruttura è più del doppio rispetto agli altri nodi. NVIDIA non pubblica prezzi al dettaglio: il dato di ~$53k per GPU è una stima di mercato. gptoss-b300-fp4 è derived dalle tabelle TRT-LLM B200 (B300 ≠ B200); lascia l'efficienza a 0.05 per il percorso di stima e usa il profilo corrispondente quando dimensioni gpt-oss. Anche nemotron35-super-b300-1x è derived, per la stessa via: throughput per GPU del report vendor mappato su una GPU.",
       "sovereign": true
     },
     {
@@ -175,7 +175,7 @@
       "fp4": true,
       "supportedPrecisions": ["nvfp4", "fp8", "bf16"],
       "memReserveGb": 32,
-      "profileIds": ["qwen35-b300-4x-nvfp4"],
+      "profileIds": ["qwen35-b300-4x-nvfp4", "deepseek41-b300-4x", "minimax31-b300-4x", "muse-spark-b300-4x"],
       "priceUsd": 320000,
       "prefill": 120000,
       "infraPerUnit": 90000,
@@ -188,7 +188,7 @@
       "batching": 8.0,
       "confidence": "estimated",
       "topology": "TP=4 / EP=4 su NVLink (shape di deploy NVIDIA Qwen3.5)",
-      "notes": "Nodo B300 multi-GPU che corrisponde all'ingombro minimo validato da NVIDIA per Qwen3.5-397B-A17B NVFP4 (4× B200/B300/GB200/GB300). Memoria e banda sono 4× la riga di catalogo 1x B300; prezzo e infrastruttura sono scalati dalla stima a GPU singola (non è un preventivo del vendor). Raffreddamento liquido diretto obbligatorio. Preferisci il profilo Qwen3.5 corrispondente quando dimensioni quel modello.",
+      "notes": "Nodo B300 multi-GPU che corrisponde all'ingombro minimo validato da NVIDIA per Qwen3.5-397B-A17B NVFP4 (4× B200/B300/GB200/GB300). Memoria e banda sono 4× la riga di catalogo 1x B300; prezzo e infrastruttura sono scalati dalla stima a GPU singola (non è un preventivo del vendor). Raffreddamento liquido diretto obbligatorio. Preferisci il profilo Qwen3.5 corrispondente quando dimensioni quel modello; per DeepSeek V4.1, MiniMax M3.1 e Muse Spark Open su questo nodo valgono rispettivamente deepseek41-b300-4x (derived dalle tabelle Dynamo a 8 GPU), minimax31-b300-4x (ricetta SGLang a 4 GPU) e muse-spark-b300-4x (curva del vendor su 4× GB300 mappata su B300).",
       "sovereign": true
     },
     {

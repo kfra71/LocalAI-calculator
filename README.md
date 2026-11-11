@@ -167,6 +167,57 @@ Il dato DeepSeek NVFP4-KV su Spark (~27,8 KB/token) e il dato community FP8-KV
 (~10,6 KB/token) restano su voci di catalogo separate dopo quella risoluzione. Fai
 come con i tuoi.
 
+## Il catalogo dei modelli
+
+Il catalogo copre la generazione pubblicata nel 2026. Ogni voce porta con sé il
+checkpoint che misuri, la KV per token e le ricette in cui è stata provata:
+
+| Modello | Checkpoint | KV per token | Ricette |
+|---|---|---|---|
+| Qwen3.6 35B-A3B | NVFP4, 22 GB | 11,58 KB (misurato su Spark) | 2× DGX Spark, DGX Station GB300 |
+| Qwen3.8 27B | NVFP4, 21,9 GB | 32,8 KB FP8 (pubblicato da SGLang) | 2× DGX Spark, 2× RTX PRO 6000, DGX Station GB300 |
+| Qwen3.8-Flash-Next | NVFP4, 132,7 GB con tabella PLE | 12,29 KB (derivato dalla configurazione) | 2× DGX Spark, 2× RTX PRO 6000, DGX Station GB300 |
+| DeepSeek V4.1 Flash | misto MXFP4/MXFP8, 476 GiB | 1,67 KB (budget di boot log del deployment) | 4× B300 (derived dalle tabelle Dynamo a 8 GPU) |
+| Nemotron 3.5 Super VL 120B-A12B | NVFP4, 75 GB | 4,1 KB (derivato dalla configurazione) | 1× B300 (derived dal report vendor) |
+| GLM-5.3-Flash | NVFP4, 204,4 GB | 7,26 KB (derivato dal codice SGLang) | DGX Station GB300 |
+| MiniMax M3.1-Flash | NVFP4, 252,4 GB | 33,75 KB NVFP4 / 60 KB FP8 (pubblicato) | 4× B300 |
+| Muse Spark Open 816B-A42B | NVFP4, 533 GB | 33,84 KB (derivato dalla configurazione, cresce a contesto corto) | 4× B300 (derived dalla curva del vendor su 4× GB300) |
+
+Quattro regole valgono per ogni ricetta, nuova o vecchia.
+
+**La banda di decode è un aggregato di nodo, non una velocità per richiesta.** Molte
+sweep pubblicano i tok/s per richiesta a ogni livello di concorrenza: 51,8 tok/s per
+richiesta a C1 sulla coppia di DGX Spark di Qwen3.8 27B diventano 199,2 tok/s aggregati
+a C8 e 310,4 a C32. Il calcolatore confronta l'aggregato con la domanda di token/s
+dell'intero carico, quindi usare il numero per richiesta come aggregato sottovaluterebbe
+la capacità di quasi un ordine di grandezza.
+
+**Una ricetta misurata su una topologia diversa viene dichiarata, non riscritta.** Le
+misure su una singola RTX PRO 6000 valgono come pavimento per scheda di un nodo con due
+schede; le tabelle per GPU di B200 e GB200 sono mappate su B300 e dichiarate `derived`
+nella nota del profilo.
+
+**Le cifre per GPU non sono bande di decode.** I picchi pubblicati per GPU sommano
+spesso input e output con prefisso in cache: usarli come banda di decode gonfierebbe
+la capacità del nodo di quasi un ordine di grandezza. Quando la fonte pubblica un
+aggregato di nodo per ogni livello di concorrenza — come la curva di Muse Spark Open,
+1.910 tok/s aggregati a 16 richieste su 4× GB300 — la banda si costruisce su quel
+numero, e non sulla cifra per GPU.
+
+**Il costo della KV si prende dal deployment, non dalla scheda.** Il DeepSeek V4.1
+costa 1,67 KB per token di contesto (la riga di budget del boot log: 1.670,75 B per
+token), e un deployment con lo stesso checkpoint ma con i pesi scaricati in DRAM
+ospite ne ha un altro: il numero che conta è quello del deployment che userai.
+
+Nemotron 3 Bolt 74B-A9B non è in catalogo: il suo pacchetto da 24 GB è un GGUF a 2 bit
+che questo strumento non sa dimensionare, e il catalogo hardware non ha uno SKU in quella
+classe.
+
+Il modello predefinito resta Qwen3.6 35B-A3B: è l'appliance flagship con la ricetta
+pubblicata di riferimento, e il suo profilo MoE con 3B attivi tiene la KV a 11,58
+KB/token. Qwen3.8 27B è più recente ma dense, e a parità di ingombro la sua KV per
+token è quasi tre volte più pesante.
+
 ## Cosa questo strumento non vi dirà
 
 Se il premio valga la pena di essere pagato. Lo stima sull'intervallo di evidenze

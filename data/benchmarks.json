@@ -90,9 +90,13 @@
       "qualification": "Ricetta pubblica fissata con soak: 756 richieste completate, zero stall, utilizzo GPU ~94%.",
       "caveats": [
         "La ricetta punta a un singolo Spark da 128 GB / Ascent GX10, non alla topologia 2x Spark TP=2 del catalogo. Il profilo su spark-2x tratta l'appliance come in grado di ospitare questa ricetta a nodo singolo (o due repliche); non presumere che il decode con TP=2 valga 2× questi numeri.",
-        "L'accettazione MTP varia per classe di prompt; considera le bande aggregate specifiche dello stack, non dei limiti architetturali."
+        "L'accettazione MTP varia per classe di prompt; considera le bande aggregate specifiche dello stack, non dei limiti architetturali.",
+        "La ricetta pubblica che ha prodotto questi numeri (NNNtrance/Qwen3.6-35B-A3B-NVFP4-Fast-DGX-Spark) non è più raggiungibile al 2026-11-11: il record resta come misura storica del 2026-08 e lo stesso checkpoint è stato rimisurato in modo indipendente sulla Station GB300 (pi3g-dgx-station-2026-11)."
       ],
-      "sources": ["https://github.com/NNNtrance/Qwen3.6-35B-A3B-NVFP4-Fast-DGX-Spark"]
+      "sources": [
+        "https://github.com/NNNtrance/Qwen3.6-35B-A3B-NVFP4-Fast-DGX-Spark",
+        "https://pi3g.com/dgx-station-gb300-benchmarking-15-small-and-mid-size-models-up-to-256-concurrent-requests/"
+      ]
     },
     {
       "id": "qwen36-rtxpro-2026",
@@ -161,8 +165,276 @@
         "La guida copre anche Hopper; il catalogo abbina il checkpoint NVFP4 a b300-4x (Blackwell)."
       ],
       "sources": [
-        "https://nvidia.github.io/TensorRT-LLM/latest/deployment-guide/deployment-guide-for-qwen3.5-on-trtllm.html",
+        "https://nvidia.github.io/TensorRT-LLM/latest/deployment-guide/deployment-guide-for-qwen3.8-qwen3.5-on-trtllm.html",
         "https://huggingface.co/nvidia/Qwen3.5-397B-A17B-NVFP4"
+      ]
+    },
+    {
+      "id": "pi3g-dgx-station-2026-11",
+      "date": "2026-11-09",
+      "confidence": "community",
+      "model": "Qwen3.6 35B-A3B NVFP4 / Qwen3.8 27B NVFP4 / Qwen3.8-Flash-Next NVFP4 / Nemotron-3-Super-120B-A12B NVFP4",
+      "hardware": "1x DGX Station GB300 (288 GB)",
+      "config": "vLLM nightly su GB300: Qwen3.6-35B-A3B con checkpoint NVIDIA NVFP4 da 22 GB, Qwen3.8-27B con build Inferact NVFP4 da 25 GB e in variante FP8 da 52 GB, Qwen3.8-Flash-Next con build RadixArk NVFP4 da 126 GB, Nemotron-3-Super-120B-A12B NVFP4 da 80,32 GB. Nessuna decodifica speculativa; pesi e KV confinati al 40% della memoria GPU; prompt da 1.024 token in ingresso e 512 in uscita; sweep fino a 256 richieste concorrenti.",
+      "metrics": [
+        { "label": "Qwen3.6 35B-A3B NVFP4, C1", "value": "276,7 tok/s", "note": "TTFT 0,13 s" },
+        { "label": "Qwen3.6 35B-A3B NVFP4, C16", "value": "2.549 tok/s aggregati", "note": "179,4 tok/s per utente" },
+        { "label": "Qwen3.6 35B-A3B NVFP4, picco", "value": "7.828 tok/s a C128", "note": "C32: 4.021 tok/s aggregati" },
+        { "label": "Qwen3.8 27B NVFP4, C1", "value": "153,2 tok/s", "note": "TTFT 0,12 s" },
+        { "label": "Qwen3.8 27B NVFP4, C16", "value": "1.783 tok/s aggregati", "note": "122,5 tok/s per utente" },
+        { "label": "Qwen3.8 27B NVFP4, picco", "value": "7.384 tok/s a C256", "note": "C32: 3.005 tok/s aggregati; 31,6 tok/s per utente a C256" },
+        { "label": "Qwen3.8-Flash-Next NVFP4, C1", "value": "198,9 tok/s", "note": "TTFT 0,14 s" },
+        { "label": "Qwen3.8-Flash-Next NVFP4, C16", "value": "1.694 tok/s aggregati", "note": "114,7 tok/s per utente" },
+        { "label": "Qwen3.8-Flash-Next NVFP4, picco", "value": "2.694 tok/s a C32", "note": "la KV si satura da C64: da lì il throughput non cresce e si contano 700-850 preemption per run da 5 minuti" },
+        { "label": "Nemotron-3-Super-120B-A12B NVFP4, C1", "value": "213,8 tok/s", "note": "modello solo testo da 80,32 GB: non è il checkpoint VL, quindi non alimenta nessun profilo" }
+      ],
+      "qualification": "Campagna community su un solo nodo, con carico sintetico a prompt corto e un tetto di memoria al 40% della GPU. Utile per il regime di concorrenza aggregata, non per il regime di contesto lungo.",
+      "caveats": [
+        "Nessuna decodifica speculativa: i profili Qwen3.8-27B e Qwen3.8-Flash-Next ricavati da qui non hanno MTP attivo, a differenza delle ricette SGLang per la stessa famiglia.",
+        "Pesi e KV confinati al 40% della memoria della GPU: il pool KV reale è più piccolo di quello che il calcolatore dedurrebbe dalla memoria libera, quindi il profilo è conservativo sulla capacità di sessioni.",
+        "Prompt da 1.024 token in ingresso e 512 in uscita: sono velocità di contesto corto. Su un modello dense il decode è dominato dalla lettura dei pesi e il degrado a contesto lungo è contenuto, ma resta una nota.",
+        "Le aggregazioni sono per nodo (una GPU) e sommano tutte le richieste concorrenti: sono i numeri che il motore confronta con la domanda aggregata del carico.",
+        "Il checkpoint Nemotron misurato è nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4, solo testo, 80,32 GB, con 262.144 token di contesto: non è Nemotron 3.5 Super VL."
+      ],
+      "sources": [
+        "https://pi3g.com/dgx-station-gb300-benchmarking-15-small-and-mid-size-models-up-to-256-concurrent-requests/",
+        "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4",
+        "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
+      ]
+    },
+    {
+      "id": "qwen38-dgx-spark-2026-08",
+      "date": "2026-08-24",
+      "confidence": "community",
+      "model": "Qwen3.8 27B NVFP4",
+      "hardware": "2x DGX Spark (200 GB) con TP=2",
+      "config": "SGLang con checkpoint RadixArk NVFP4 e draft DSpark (MTP n=3) su 2 nodi Spark in TP=2; in parallelo build vLLM Inflightact + MTP n=3 e lo sweep su 1 e 4 Spark per il confronto delle configurazioni.",
+      "metrics": [
+        { "label": "SGLang + DSpark, C1", "value": "51,8 tok/s per richiesta", "note": "TTFT 219 ms" },
+        { "label": "Aggregato a C8", "value": "199,2 tok/s", "note": "24,9 tok/s per richiesta" },
+        { "label": "Aggregato a C16", "value": "267,2 tok/s", "note": "16,7 tok/s per richiesta; TTFT 460 ms" },
+        { "label": "Aggregato a C32", "value": "310,4 tok/s", "note": "9,7 tok/s per richiesta; TTFT 5.682 ms, oltre il bersaglio di 1 s" },
+        { "label": "vLLM + MTP n=3, C1", "value": "23,4 tok/s per richiesta", "note": "TTFT 254 ms; è la build più lenta delle tre misurate" }
+      ],
+      "qualification": "Studio community sul forum NVIDIA con sweep di concorrenza e di parallelismo su 2 nodi Spark: è la misura con la topologia che combacia con lo SKU spark-2x del catalogo.",
+      "caveats": [
+        "Le misure sono per richiesta: l'aggregato è per-request per concorrenza, ed è l'aggregato che il motore confronta con la domanda di token/s del carico.",
+        "A C32 il TTFT di 5,68 s sfora il bersaglio di 1 s: il profilo tiene base = aggregato a C8 e high = aggregato a C32, annotando che high non è utilizzabile sotto il vincolo di latenza.",
+        "Post di forum: non è una misura first-party del vendor, e le tre build confrontate non hanno la stessa acceptance.",
+        "Nessun prefill in tok/s pubblicato: il prefill del profilo è stimato dal catalogo hardware."
+      ],
+      "sources": [
+        "https://forums.developer.nvidia.com/t/comprehensive-qwen3-8-27b-study-on-dgx-sparks-quantization-speculative-decoding-and-tp-dp-scaling/381102",
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/1x-dgx-spark/nvfp4-sglang-tp1-spec8/"
+      ]
+    },
+    {
+      "id": "qwen38-rtxpro-2026-09",
+      "date": "2026-09-15",
+      "confidence": "community",
+      "model": "Qwen3.8 27B NVFP4",
+      "hardware": "1x RTX PRO 6000 Blackwell 96 GB",
+      "config": "Sweep OpenZeka con vLLM TP1 in NVFP4 con MTP k=3 su una singola RTX PRO 6000, con prefissato fisso da 3.072 token e output di 32 token; in parallelo la ricetta nexgen con SGLang e DFlash2 su 32 prompt GSM8K.",
+      "metrics": [
+        { "label": "C1", "value": "136,99 tok/s per richiesta", "note": "TTFT 72 ms" },
+        { "label": "Aggregato a C8", "value": "856,6 tok/s", "note": "107,07 tok/s per richiesta" },
+        { "label": "Aggregato a C32", "value": "1.876,8 tok/s", "note": "58,65 tok/s per richiesta" },
+        { "label": "Aggregato a C64", "value": "2.110,7 tok/s", "note": "32,98 tok/s per richiesta; a C128 la configurazione fallisce" },
+        { "label": "Ricetta DFlash2 (nexgen)", "value": "226,1 tok/s a stream singolo", "note": "720 tok/s aggregati a 8 richieste concorrenti su 32 prompt GSM8K" }
+      ],
+      "qualification": "Due fonti community indipendenti che concordano sull'ordine di grandezza a C8: 856,6 tok/s con vLLM e MTP k=3, 720 tok/s con SGLang e DFlash2.",
+      "caveats": [
+        "La misura è su una sola RTX PRO 6000 da 96 GB mentre lo SKU rtxpro-2x ne ha due: i numeri sono il pavimento per scheda di un nodo a due schede, che con due repliche indipendenti servirebbe all'incirca il doppio.",
+        "A C128 la configurazione fallisce: il profilo ferma il high a C32.",
+        "Le due fonti usano runtime e draft diversi (MTP k=3 su vLLM, DFlash2 su SGLang): i numeri non sono combinabili, servono come controllo incrociato.",
+        "Nessun prefill in tok/s pubblicato: il prefill del profilo è stimato dal catalogo hardware."
+      ],
+      "sources": [
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-27b/rtx-pro-6000/nvfp4-vllm-tp1-spec3/",
+        "https://www.nexgen-compute.com/blog/qwen3-8-27b-rtx-pro-6000-226-tokens-second"
+      ]
+    },
+    {
+      "id": "qwen38fn-spark-openzeka-2026-08",
+      "date": "2026-08-31",
+      "confidence": "community",
+      "model": "Qwen3.8-Flash-Next NVFP4",
+      "hardware": "2x DGX Spark (200 GB) con TP=2",
+      "config": "SGLang con checkpoint NVFP4 e tabella PLE su 2 nodi Spark in TP=2, contesto 262K, senza decodifica speculativa; la tabella PLE da 47,7 GiB è file-backed su NVMe con 8.200 file.",
+      "metrics": [
+        { "label": "C1", "value": "37,51 tok/s per richiesta", "note": "TTFT 200 ms" },
+        { "label": "Aggregato a C2", "value": "61,94 tok/s", "note": "30,97 tok/s per richiesta" },
+        { "label": "Aggregato a C4", "value": "91,88 tok/s", "note": "22,97 tok/s per richiesta; a C8 la configurazione fallisce con TTFT 2.671 ms" },
+        { "label": "Prefill a 100K di contesto", "value": "2.400-2.840 tok/s", "note": "dal cookbook SGLang per 2 nodi Spark con TP=2" }
+      ],
+      "qualification": "Sweep community OpenZeka su 2 nodi Spark con la topologia che combacia con lo SKU spark-2x del catalogo.",
+      "caveats": [
+        "La concorrenza utile si esaurisce a C4: oltre, il TTFT sfora di due volte e mezzo il bersaglio di 1 s.",
+        "Nessuna decodifica speculativa: le ricette NEXTN con MTP k=3 esistono per la stessa famiglia ma non sono state misurate su Spark in questa fonte.",
+        "Il checkpoint da 132,68 GB include la tabella PLE, che su Spark risiede su NVMe e non in VRAM: la stima di memoria del motore è quindi conservativa.",
+        "Nessun prefill in tok/s nello sweep OpenZeka: il prefill del profilo viene dal cookbook SGLang."
+      ],
+      "sources": [
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-flash-next/2x-dgx-spark/nvfp4-sglang-tp2/",
+        "https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-Flash-Next"
+      ]
+    },
+    {
+      "id": "qwen38fn-rtxpro-openzeka-2026-08",
+      "date": "2026-08-31",
+      "confidence": "community",
+      "model": "Qwen3.8-Flash-Next NVFP4",
+      "hardware": "1x RTX PRO 6000 Blackwell 96 GB",
+      "config": "SGLang con checkpoint NVFP4, NEXTN MTP k=3 e tabella PLE da 47,7 GiB in RAM ospite pinned, su una singola RTX PRO 6000; contesto 262K.",
+      "metrics": [
+        { "label": "C1", "value": "184,84 tok/s per richiesta", "note": "TTFT 139 ms" },
+        { "label": "Aggregato a C8", "value": "557,92 tok/s", "note": "69,74 tok/s per richiesta" },
+        { "label": "Aggregato a C16", "value": "722,72 tok/s", "note": "45,17 tok/s per richiesta; a C32 la configurazione fallisce" }
+      ],
+      "qualification": "Sweep community OpenZeka su una singola RTX PRO 6000 con draft NEXTN attivo: è la misura con draft per questa variante.",
+      "caveats": [
+        "La misura è su una sola scheda mentre lo SKU rtxpro-2x ne ha due: i numeri sono il pavimento per scheda del nodo a due schede.",
+        "Il checkpoint da 132,68 GB con tabella PLE in RAM ospite non entra nei 96 GB di VRAM della singola scheda: la configurazione misurata prevede la tabella fuori dalla GPU, il che il motore non modella, quindi il profilo sottostima il fabbisogno di memoria.",
+        "A C32 la configurazione fallisce: il profilo ferma il high a C16.",
+        "Nessun prefill in tok/s pubblicato: il prefill del profilo è stimato dal catalogo hardware."
+      ],
+      "sources": [
+        "https://whitepapers.openzeka.com/llm-inference-benchmarks/qwen3-8-flash-next/rtx-pro-6000/nvfp4-sglang-tp1-spec3/",
+        "https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-Flash-Next"
+      ]
+    },
+    {
+      "id": "deepseek41-dynamo-2026-11",
+      "date": "2026-11-05",
+      "confidence": "published",
+      "model": "DeepSeek V4.1 Flash (checkpoint misto MXFP4/MXFP8 da 476 GiB)",
+      "hardware": "8x B200 / GB200 / H200 (ricette NVIDIA Dynamo)",
+      "config": "vLLM su TensorRT-LLM con DSpark (3 token di draft, blocco di verifica), MXFP4 sparse-indexer KV e sparse-indexer logits, carico agentico da 64K token in ingresso e 400 in uscita; righe misurate: B200 aggregato 2×TP4 a C168, B200 disaggregato (1 prefill + 1 decode) a C184, GB200 aggregato a C168, GB200 disaggregato a C168, H200 TP4 con Engram scaricato in DRAM ospite.",
+      "metrics": [
+        { "label": "B200 aggregato, C168", "value": "990,57 tok/s per GPU", "note": "output tok/s per GPU come definito dal vendor: totale di sistema 7.924 tok/s su 8 GPU" },
+        { "label": "B200 disaggregato, C184", "value": "1.087,71 tok/s per GPU", "note": "prefill e decode su pool separati" },
+        { "label": "GB200 aggregato, C168", "value": "953,08 tok/s per GPU", "note": "totale di sistema 7.624 tok/s su 8 GPU" },
+        { "label": "H200 aggregato", "value": "315,45 tok/s per GPU", "note": "con Engram in DRAM ospite: percorso non applicabile a un modello NVFP4 su H200, quindi non genera profilo" },
+        { "label": "Acceptance DSpark", "value": "non pubblicato", "note": "la pagina vendor dichiara solo che la decodifica speculativa è attiva" }
+      ],
+      "qualification": "Tabelle del vendor NVIDIA (Dynamo) con carico agentico e parametri di concorrenza dichiarati; nessuna data di pubblicazione stampata sulla pagina dev, ma i commit della ricetta vanno dal 2026-10-08 al 2026-11-09.",
+      "caveats": [
+        "Valori per GPU: la mappa su b300-4x moltiplica per 4 assumendo che il throughput per GPU di un worker TP4 resti valido in un nodo da 4 GPU senza il vincolo del secondo worker. La derivazione è dichiarata come derived nel profilo.",
+        "Nessun tasso di accettazione pubblicato: trasferire il decode a un regime di acceptance diverso non è sicuro, e per questo il profilo non usa lo specTokens del modello per giustificare la banda.",
+        "Il checkpoint servito pesa 476 GiB e non entra nei 252 GB di HBM di una singola GB300: la ricetta ufficiale lo serve con l'offload in memoria ospite, che il motore non modella, quindi non c'è un profilo su station-gb300.",
+        "Nessun prefill in tok/s pubblicato."
+      ],
+      "sources": [
+        "https://docs.nvidia.com/dynamo/dev/recipes/deepseek-v4-1-flash",
+        "https://github.com/ai-dynamo/dynamo",
+        "https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash",
+        "https://github.com/knapcio/DeepSeek-V4.1-Flash-4x-DGX-Spark-TP4",
+        "https://github.com/fuqiang-lab/DeepSeek-v4.1-Flash-DGX-Sparks-TP3"
+      ]
+    },
+    {
+      "id": "nemotron35-super-report-2026-10",
+      "date": "2026-10-21",
+      "confidence": "published",
+      "model": "Nemotron 3.5 Super / Lightning (VL 120B-A12B e 30B-A3B)",
+      "hardware": "1 GPU GB200 (B200) per GPU, con tabella di riferimento su 4 GPU GB300 NVL72",
+      "config": "vLLM con NVFP4, KV FP8 e MTP; carico agentico da 20 turni con 51.200 token di prefisso condiviso, 2.048 token in ingresso e 1.024 in uscita per turno, con almeno 50 tok/s per utente.",
+      "metrics": [
+        { "label": "Output per GPU su GB200", "value": "4.856 tok/s", "note": "per GPU, non per nodo: il profilo b300-1x assume un nodo a una GPU" },
+        { "label": "Con ReplaySSM", "value": "5.728 tok/s per GPU", "note": "MTP con 5 token e 64 utenti simultanei" },
+        { "label": "Su H100", "value": "1.200 tok/s per GPU", "note": "pavimento conservativo, usato come low del profilo" }
+      ],
+      "qualification": "Report tecnico del vendor con numeri di output per GPU su carico agentico; la stessa tabella copre il Lightning da 30B, quindi i valori non sono specifici del checkpoint VL da 120B.",
+      "caveats": [
+        "Valori per GPU mappati su B300: la stessa pratica del profilo gptoss-b300-fp4, che mappa le tabelle TRT-LLM da B200 a B300 dichiarandola come derived.",
+        "Il report copre la famiglia Super/Lightning: i numeri non sono attribuibili al solo checkpoint VL 120B.",
+        "Carico agentico con prefisso condiviso: la prestazione su prompt senza cache di prefisso è diversa.",
+        "Nessun prefill in tok/s pubblicato."
+      ],
+      "sources": [
+        "https://research.nvidia.com/labs/adlr/Nemotron-3-Super/",
+        "https://build.nvidia.com/nvidia/nemotron-3.5-super-vl-120b-a12b/modelcard"
+      ]
+    },
+    {
+      "id": "glm53-station-petronella-2026-10",
+      "date": "2026-10-27",
+      "confidence": "community",
+      "model": "GLM-5.3-Flash NVFP4 (checkpoint NVIDIA, KV FP8)",
+      "hardware": "1x DGX Station GB300 (288 GB)",
+      "config": "vLLM con tensor parallel 1 su una singola DGX Station GB300 con gpu-memory-utilization 0,94, --max-num-seqs 256 e contesto pieno da 1.048.576 token; misure del 2026-09-25, ricetta ripubblicata su GitHub il 2026-10-26.",
+      "metrics": [
+        { "label": "Un utente", "value": "145,9 tok/s", "note": "single stream" },
+        { "label": "32 utenti contemporanei", "value": "1.464 tok/s aggregati", "note": "55,6 tok/s per utente, zero errori" },
+        { "label": "Picco aggregato", "value": "2.517 tok/s", "note": "dalla pagina fleet del benchmark" },
+        { "label": "Pool KV", "value": "5.933.986 token", "note": "KV FP8, pari a 5,66 richieste da 1M di contesto in contemporanea" }
+      ],
+      "qualification": "Misura community con ricetta ripubblicata e pagina fleet: non è una campagna vendor, ma il percorso è riproducibile e la KV è documentata.",
+      "caveats": [
+        "Nessuna decodifica speculativa: la ricetta prova a caricare l'MTP head e il caricamento fallisce con questo checkpoint, quindi il modello gira senza MTP.",
+        "Il vendor non pubblica numeri di throughput per GLM-5.3-Flash: solo un grafico Pareto e una tabella di cookbook SGLang su 4× B300 con acceptance simulata.",
+        "I prefill in tok/s della stessa fonte appartengono al checkpoint RedHatAI, non a quello NVIDIA della ricetta.",
+        "Il KV/token del vendor non è pubblicato: i valori del catalogo sono derivati dal codice SGLang."
+      ],
+      "sources": [
+        "https://petronellatech.com/ai/llm-benchmarks/models/glm-5-3-flash",
+        "https://github.com/capetron/glm-5.3-flash-dgx-station-gb300",
+        "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4"
+      ]
+    },
+    {
+      "id": "minimax31-b300-sglang-2026-11",
+      "date": "2026-11-10",
+      "confidence": "published",
+      "model": "MiniMax M3.1-Flash NVFP4",
+      "hardware": "4x B300 (1.152 GB)",
+      "config": "Ricetta SGLang a bassa latenza su 4× B300 con TP=4, acceptance length fissata a 5 e batch size 1; il percorso standard e il percorso con plugin SGLang sono riportati separatamente.",
+      "metrics": [
+        { "label": "Percorso standard, contesto 1K", "value": "479 tok/s", "note": "batch size 1" },
+        { "label": "Percorso standard, contesto 256K", "value": "465 tok/s", "note": "stessa configurazione" },
+        { "label": "Percorso standard, contesto 1M", "value": "408 tok/s", "note": "stessa configurazione" },
+        { "label": "Con plugin SGLang, contesto 1K", "value": "1.028 tok/s", "note": "mantiene in memoria 54,1 GiB di esperti extra per rank" }
+      ],
+      "qualification": "Cookbook SGLang con misure su 4× B300: è la topologia che combacia con lo SKU b300-4x del catalogo.",
+      "caveats": [
+        "Numeri a batch size 1: sono velocità a richiesta singola, non un aggregato per concorrenza, e il motore li confronta con la domanda aggregata del carico.",
+        "Il percorso con plugin quasi raddoppia il decode ma mantiene una copia extra di 54,1 GiB di esperti per rank: quel percorso non è rappresentato dal profilo né dai parametri di memoria del modello.",
+        "La ricetta fissa --max-running-requests a 8: è il tetto di concorrenza che il profilo dichiara.",
+        "Nessun prefill in tok/s pubblicato."
+      ],
+      "sources": [
+        "https://docs.sglang.io/cookbook/autoregressive/MiniMax/MiniMax-M3.1",
+        "https://vllm.ai/blog/2026-10-23-minimax-m31-flash",
+        "https://huggingface.co/MiniMaxAI/MiniMax-M3.1"
+      ]
+    },
+    {
+      "id": "muse-spark-vllm-2026-10",
+      "date": "2026-10-15",
+      "confidence": "published",
+      "model": "Muse Spark Open 816B-A42B NVFP4",
+      "hardware": "4x GB300 (TP4), 1.152 GB",
+      "config": "vLLM day-0 con checkpoint NVFP4 da 533 GB e DSpark (7 draft token, Inferact/Muse-Spark-Open-DSpark); curva SPEED-Bench con un punto per livello di concorrenza da c1 a c256, dati pubblicati come coppia per-utente/aggregato.",
+      "metrics": [
+        { "label": "C1", "value": "290 tok/s aggregati", "note": "300 tok/s per utente con DSpark; senza draft 180 aggregati e 184,5 per utente" },
+        { "label": "C16", "value": "1.910 tok/s aggregati", "note": "126,4 tok/s per utente" },
+        { "label": "C32", "value": "3.000 tok/s aggregati", "note": "102,5 tok/s per utente" },
+        { "label": "C64", "value": "4.340 tok/s aggregati", "note": "76,7 tok/s per utente" },
+        { "label": "C256", "value": "8.100 tok/s aggregati", "note": "42,0 tok/s per utente" },
+        { "label": "Senza decodifica speculativa", "value": "7.810 tok/s aggregati a C256", "note": "1.890 a C32 e 180 a C1: il vantaggio del draft si chiude alle alte concorrenze" }
+      ],
+      "qualification": "Curva del vendor pubblicata con i dati della figura: è un aggregato di nodo per ogni livello di concorrenza, cioè il numero che il motore confronta con la domanda del carico.",
+      "caveats": [
+        "La figura non dichiara la lunghezza dei prompt: il profilo è dichiarato valido fino a 32k di contesto e oltre il motore ripiega sulla stima con avviso.",
+        "GB300 non è B300: la mappa su b300-4x è dichiarata derived, come per gptoss-b300-fp4.",
+        "I picchi di 50K token/s per GPU citati altrove sommano input e output con prefisso in cache: non sono una banda di decode e non sono usati qui.",
+        "Il vantaggio del draft è implicito nel confronto 300 contro 184,5 tok/s per utente, cioè ~1,6 token per passo: è il valore usato come specTokens del modello."
+      ],
+      "sources": [
+        "https://vllm.ai/blog/2026-10-15-muse-spark-open",
+        "https://vllm.ai/blog-assets/interactive_pages/muse-spark-open-dspark-throughput.html",
+        "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
       ]
     }
   ]
